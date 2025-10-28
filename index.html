@@ -1,114 +1,694 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>🎮 Таполка</title>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Мопс Таполка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+        * {
             margin: 0;
-            padding: 20px;
-            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
         }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B4513, #D2691E);
+            color: #FFF;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
         .container {
             max-width: 400px;
             margin: 0 auto;
         }
-        .coin {
-            font-size: 120px;
-            cursor: pointer;
-            margin: 30px 0;
-            transition: transform 0.1s;
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .coin:active {
-            transform: scale(0.9);
+        
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        .balance {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .tap-btn {
-            background: #ffd700;
-            color: black;
-            border: none;
-            padding: 20px 40px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 20px 0;
-        }
+        
         .stats {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
             padding: 15px;
             border-radius: 15px;
             margin: 15px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .balance {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .mops {
+            font-size: 80px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.1s;
+            user-select: none;
+            text-align: center;
+        }
+        
+        .mops:active {
+            transform: scale(0.9);
+        }
+        
+        .tap-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .tap-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .tabs {
+            display: flex;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 5px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .shop {
+            display: none;
+        }
+        
+        .cards {
+            display: none;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .card.rare {
+            border-color: #FFD700;
+            background: rgba(255,215,0,0.1);
+        }
+        
+        .card.epic {
+            border-color: #9370DB;
+            background: rgba(147,112,219,0.1);
+        }
+        
+        .card.legendary {
+            border-color: #FF4500;
+            background: rgba(255,69,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .card-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .card-rarity {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .card-stats {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .buy-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .buy-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .mining-info {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .timer {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 0.9em;
+            color: #FFD700;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .owned-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .mops-animation {
+            animation: mopsPulse 0.3s ease-in-out;
+        }
+        
+        @keyframes mopsPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating-mops {
+            position: absolute;
+            font-size: 20px;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-80px) scale(0.5);
+                opacity: 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 Таполка</h1>
+        <div class="header">
+            <h1>🐕 Мопс Таполка</h1>
+            <div>Тапай за мопс-коинами!</div>
+        </div>
         
         <div class="stats">
             <div class="balance">
-                <span id="coins">0</span> 🪙
+                <span id="mopsCoins">0</span> 🐕
             </div>
-            <div>Уровень: <span id="level">Новичок</span></div>
+            <div style="text-align: center;">
+                Уровень: <span id="level">Новичок</span>
+            </div>
         </div>
-
-        <div class="coin" onclick="tapCoin()">💰</div>
         
-        <button class="tap-btn" onclick="tapCoin()">🔥 ТАПНУТЬ!</button>
+        <div class="mops" id="mops" onclick="tapMops()">
+            🐕
+        </div>
         
-        <div class="stats">
-            <div>Всего тапов: <span id="totalTaps">0</span></div>
-            <div>До след. уровня: <span id="nextLevel">10</span> монет</div>
+        <button class="tap-btn" onclick="tapMops()">
+            🎯 ТАПНУТЬ МОПСА!
+        </button>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('tap')">Тапать</div>
+            <div class="tab" onclick="switchTab('shop')">Магазин</div>
+            <div class="tab" onclick="switchTab('cards')">Карточки</div>
+        </div>
+        
+        <div id="tapTab" class="tab-content">
+            <div class="stats">
+                <div>Всего тапов: <span id="totalTaps">0</span></div>
+                <div>До след. уровня: <span id="nextLevel">10</span> мопсов</div>
+            </div>
+        </div>
+        
+        <div id="shopTab" class="shop tab-content">
+            <div class="timer" id="shopTimer">Магазин обновится через: 30:00</div>
+            <div id="shopItems"></div>
+        </div>
+        
+        <div id="cardsTab" class="cards tab-content">
+            <div class="mining-info" id="miningInfo">Майнинг: 0 мопс-коинов/сек</div>
+            <div class="card-grid" id="ownedCards"></div>
         </div>
     </div>
 
     <script>
-        let coins = 0;
+        // Данные игры
+        let mopsCoins = 0;
         let totalTaps = 0;
-
-        function tapCoin() {
-            coins++;
+        let ownedCards = [];
+        let miningRate = 0;
+        let lastMiningTime = Date.now();
+        let shopItems = [];
+        let shopRefreshTime = Date.now() + 30 * 60 * 1000; // 30 минут
+        
+        // Типы карточек
+        const cardTypes = [
+            {
+                id: 1,
+                name: "Щенок мопса",
+                emoji: "🐶",
+                rarity: "common",
+                price: 10,
+                mining: 0.1,
+                chance: 40
+            },
+            {
+                id: 2,
+                name: "Взрослый мопс",
+                emoji: "🐕",
+                rarity: "common",
+                price: 25,
+                mining: 0.3,
+                chance: 30
+            },
+            {
+                id: 3,
+                name: "Мопс в очках",
+                emoji: "🤓🐕",
+                rarity: "rare",
+                price: 50,
+                mining: 0.8,
+                chance: 15
+            },
+            {
+                id: 4,
+                name: "Королевский мопс",
+                emoji: "👑🐕",
+                rarity: "rare",
+                price: 100,
+                mining: 1.5,
+                chance: 10
+            },
+            {
+                id: 5,
+                name: "Золотой мопс",
+                emoji: "⭐🐕",
+                rarity: "epic",
+                price: 250,
+                mining: 3,
+                chance: 4
+            },
+            {
+                id: 6,
+                name: "Космический мопс",
+                emoji: "🚀🐕",
+                rarity: "epic",
+                price: 500,
+                mining: 6,
+                chance: 2
+            },
+            {
+                id: 7,
+                name: "Легендарный мопс",
+                emoji: "💫🐕",
+                rarity: "legendary",
+                price: 1000,
+                mining: 12,
+                chance: 1
+            }
+        ];
+        
+        // Элементы DOM
+        const mopsCoinsElement = document.getElementById('mopsCoins');
+        const levelElement = document.getElementById('level');
+        const totalTapsElement = document.getElementById('totalTaps');
+        const nextLevelElement = document.getElementById('nextLevel');
+        const mopsElement = document.getElementById('mops');
+        const miningInfoElement = document.getElementById('miningInfo');
+        const shopTimerElement = document.getElementById('shopTimer');
+        const shopItemsElement = document.getElementById('shopItems');
+        const ownedCardsElement = document.getElementById('ownedCards');
+        
+        // Загрузка игры
+        function loadGame() {
+            try {
+                const saved = localStorage.getItem('mopsTapolka');
+                if (saved) {
+                    const gameData = JSON.parse(saved);
+                    mopsCoins = gameData.mopsCoins || 0;
+                    totalTaps = gameData.totalTaps || 0;
+                    ownedCards = gameData.ownedCards || [];
+                    miningRate = gameData.miningRate || 0;
+                    shopItems = gameData.shopItems || [];
+                    shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
+                    
+                    // Если магазин пустой, генерируем новые предметы
+                    if (shopItems.length === 0) {
+                        generateShopItems();
+                    }
+                } else {
+                    generateShopItems();
+                }
+            } catch (e) {
+                console.log('Ошибка загрузки');
+                generateShopItems();
+            }
+            updateMiningRate();
+            updateDisplay();
+            updateShop();
+            updateCards();
+        }
+        
+        // Сохранение игры
+        function saveGame() {
+            try {
+                const gameData = {
+                    mopsCoins: mopsCoins,
+                    totalTaps: totalTaps,
+                    ownedCards: ownedCards,
+                    miningRate: miningRate,
+                    shopItems: shopItems,
+                    shopRefreshTime: shopRefreshTime,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
+            } catch (e) {
+                console.log('Ошибка сохранения');
+            }
+        }
+        
+        // Тап по мопсу
+        function tapMops() {
+            mopsCoins++;
             totalTaps++;
+            
+            createFloatingMops();
+            
             updateDisplay();
             
-            // Анимация
-            document.querySelector('.coin').style.transform = 'scale(0.8)';
+            mopsElement.classList.add('mops-animation');
             setTimeout(() => {
-                document.querySelector('.coin').style.transform = 'scale(1)';
-            }, 100);
-        }
-
-        function updateDisplay() {
-            document.getElementById('coins').textContent = coins;
-            document.getElementById('totalTaps').textContent = totalTaps;
+                mopsElement.classList.remove('mops-animation');
+            }, 300);
             
-            // Уровни
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+            
+            saveGame();
+        }
+        
+        // Создание летящего мопса
+        function createFloatingMops() {
+            const floatingMops = document.createElement('div');
+            floatingMops.className = 'floating-mops';
+            floatingMops.textContent = '+1 🐕';
+            floatingMops.style.left = Math.random() * 200 + 100 + 'px';
+            floatingMops.style.top = '250px';
+            
+            document.body.appendChild(floatingMops);
+            
+            setTimeout(() => {
+                document.body.removeChild(floatingMops);
+            }, 1000);
+        }
+        
+        // Переключение вкладок
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            document.querySelector(`.tab:nth-child(${tabName === 'tap' ? 1 : tabName === 'shop' ? 2 : 3})`).classList.add('active');
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+        }
+        
+        // Генерация предметов магазина
+        function generateShopItems() {
+            shopItems = [];
+            const availableCards = [...cardTypes];
+            
+            // Генерируем 3 случайные карточки
+            for (let i = 0; i < 3; i++) {
+                if (availableCards.length === 0) break;
+                
+                const totalChance = availableCards.reduce((sum, card) => sum + card.chance, 0);
+                let random = Math.random() * totalChance;
+                let selectedCard = null;
+                
+                for (const card of availableCards) {
+                    random -= card.chance;
+                    if (random <= 0) {
+                        selectedCard = card;
+                        break;
+                    }
+                }
+                
+                if (selectedCard) {
+                    shopItems.push({...selectedCard});
+                    // Удаляем карточку из доступных чтобы не повторялась
+                    availableCards.splice(availableCards.findIndex(c => c.id === selectedCard.id), 1);
+                }
+            }
+            
+            shopRefreshTime = Date.now() + 30 * 60 * 1000;
+        }
+        
+        // Покупка карточки
+        function buyCard(cardId) {
+            const card = shopItems.find(c => c.id === cardId);
+            if (!card) return;
+            
+            if (mopsCoins >= card.price) {
+                mopsCoins -= card.price;
+                ownedCards.push({...card});
+                shopItems = shopItems.filter(c => c.id !== cardId);
+                updateMiningRate();
+                updateDisplay();
+                updateShop();
+                updateCards();
+                saveGame();
+            }
+        }
+        
+        // Обновление скорости майнинга
+        function updateMiningRate() {
+            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0);
+            miningInfoElement.textContent = `Майнинг: ${miningRate.toFixed(1)} мопс-коинов/сек`;
+        }
+        
+        // Майнинг в фоне
+        function processMining() {
+            const now = Date.now();
+            const timePassed = (now - lastMiningTime) / 1000; // в секундах
+            
+            if (timePassed > 0) {
+                const minedCoins = miningRate * timePassed;
+                mopsCoins += minedCoins;
+                lastMiningTime = now;
+                updateDisplay();
+                saveGame();
+            }
+        }
+        
+        // Обновление магазина
+        function updateShop() {
+            // Проверяем нужно ли обновить магазин
+            if (Date.now() >= shopRefreshTime) {
+                generateShopItems();
+            }
+            
+            // Обновляем таймер
+            const timeLeft = Math.max(0, shopRefreshTime - Date.now());
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            shopTimerElement.textContent = `Магазин обновится через: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Обновляем предметы
+            shopItemsElement.innerHTML = '';
+            shopItems.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.rarity}`;
+                cardElement.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-name">${card.emoji} ${card.name}</div>
+                        <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">${getRarityName(card.rarity)}</div>
+                    </div>
+                    <div class="card-stats">
+                        Майнинг: ${card.mining} мопс/сек<br>
+                        Цена: ${card.price} 🐕
+                    </div>
+                    <button class="buy-btn" onclick="buyCard(${card.id})" ${mopsCoins < card.price ? 'disabled' : ''}>
+                        ${mopsCoins < card.price ? 'Недостаточно 🐕' : 'Купить'}
+                    </button>
+                `;
+                shopItemsElement.appendChild(cardElement);
+            });
+            
+            if (shopItems.length === 0) {
+                shopItemsElement.innerHTML = '<div style="text-align: center; opacity: 0.7;">Магазин пуст</div>';
+            }
+        }
+        
+        // Обновление карточек
+        function updateCards() {
+            ownedCardsElement.innerHTML = '';
+            
+            if (ownedCards.length === 0) {
+                ownedCardsElement.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек</div>';
+                return;
+            }
+            
+            // Группируем карточки по типу
+            const cardCounts = {};
+            ownedCards.forEach(card => {
+                const key = card.id;
+                if (!cardCounts[key]) {
+                    cardCounts[key] = {card: card, count: 0};
+                }
+                cardCounts[key].count++;
+            });
+            
+            Object.values(cardCounts).forEach(({card, count}) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'owned-card';
+                cardElement.innerHTML = `
+                    <div style="font-size: 2em;">${card.emoji}</div>
+                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
+                    <div style="font-size: 0.7em; opacity: 0.8;">×${count}</div>
+                    <div style="font-size: 0.7em; margin-top: 5px;">+${card.mining}/сек</div>
+                `;
+                ownedCardsElement.appendChild(cardElement);
+            });
+        }
+        
+        // Вспомогательные функции
+        function getRarityColor(rarity) {
+            switch(rarity) {
+                case 'common': return '#666';
+                case 'rare': return '#4CAF50';
+                case 'epic': return '#9C27B0';
+                case 'legendary': return '#FF9800';
+                default: return '#666';
+            }
+        }
+        
+        function getRarityName(rarity) {
+            switch(rarity) {
+                case 'common': return 'Обычная';
+                case 'rare': return 'Редкая';
+                case 'epic': return 'Эпическая';
+                case 'legendary': return 'Легендарная';
+                default: return 'Обычная';
+            }
+        }
+        
+        // Обновление отображения
+        function updateDisplay() {
+            mopsCoinsElement.textContent = Math.floor(mopsCoins);
+            totalTapsElement.textContent = totalTaps;
+            
             let level = 'Новичок';
             let nextLevel = 10;
             
-            if (coins >= 10) { level = 'Любитель'; nextLevel = 50; }
-            if (coins >= 50) { level = 'Профи'; nextLevel = 100; }
-            if (coins >= 100) { level = 'Мастер'; nextLevel = 500; }
-            if (coins >= 500) { level = 'Король'; nextLevel = 'MAX'; }
+            if (mopsCoins < 10) {
+                level = '🥉 Новичок';
+                nextLevel = 10;
+            } else if (mopsCoins < 50) {
+                level = '🥈 Любитель';
+                nextLevel = 50;
+            } else if (mopsCoins < 100) {
+                level = '🥇 Профи';
+                nextLevel = 100;
+            } else if (mopsCoins < 500) {
+                level = '💎 Мастер';
+                nextLevel = 500;
+            } else {
+                level = '👑 Король мопсов';
+                nextLevel = 'MAX';
+            }
             
-            document.getElementById('level').textContent = level;
-            document.getElementById('nextLevel').textContent = nextLevel;
+            levelElement.textContent = level;
+            nextLevelElement.textContent = nextLevel;
         }
-
+        
         // Инициализация Telegram
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
+        function initTelegram() {
+            try {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                Telegram.WebApp.setHeaderColor('#8B4513');
+                Telegram.WebApp.setBackgroundColor('#D2691E');
+            } catch (e) {
+                console.log('Telegram Web App не доступен');
+            }
+        }
+        
+        // Игровой цикл
+        function gameLoop() {
+            processMining();
+            updateShop();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Запуск игры
+        function initGame() {
+            loadGame();
+            initTelegram();
+            gameLoop();
+            
+            document.addEventListener('keydown', function(event) {
+                if (event.code === 'Space') {
+                    event.preventDefault();
+                    tapMops();
+                }
+            });
+            
+            // Показываем первую вкладку
+            switchTab('tap');
+        }
+        
+        // Запускаем игру
+        window.onload = initGame;
     </script>
 </body>
 </html>
