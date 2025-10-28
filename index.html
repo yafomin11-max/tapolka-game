@@ -151,6 +151,15 @@
             margin-bottom: 10px;
         }
         
+        .chance-badge {
+            display: inline-block;
+            background: rgba(255,215,0,0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+        
         .buy-btn, .game-btn, .trade-btn {
             background: #4CAF50;
             color: white;
@@ -210,6 +219,7 @@
             border: 1px solid rgba(255,255,255,0.2);
             cursor: pointer;
             transition: all 0.3s;
+            position: relative;
         }
         
         .owned-card.selected {
@@ -219,6 +229,17 @@
         
         .owned-card:active {
             transform: scale(0.95);
+        }
+        
+        .card-id {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            opacity: 0.7;
         }
         
         .mops-animation {
@@ -277,29 +298,68 @@
             text-align: center;
         }
         
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+        /* Стили для рулетки */
+        .roulette-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
             margin: 15px 0;
         }
         
-        .game-cell {
-            background: rgba(255,255,255,0.2);
+        .roulette-wheel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 120px;
+            background: linear-gradient(45deg, #2c3e50, #34495e);
             border-radius: 10px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1.5em;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
         }
         
-        .game-cell:hover {
-            background: rgba(255,255,255,0.3);
+        .roulette-item {
+            font-size: 3em;
+            padding: 0 20px;
+            transition: all 0.1s;
         }
         
-        .game-cell.revealed {
-            background: rgba(76,175,80,0.3);
+        .roulette-center {
+            position: absolute;
+            font-size: 2em;
+            background: #e74c3c;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
         }
+        
+        .roulette-spinning .roulette-item {
+            animation: rouletteSpin 0.1s linear infinite;
+        }
+        
+        @keyframes rouletteSpin {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100px); }
+        }
+        
+        .roulette-result {
+            font-size: 4em;
+            margin: 20px 0;
+            animation: resultPop 0.5s ease-out;
+        }
+        
+        @keyframes resultPop {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .win { color: #4CAF50; }
+        .lose { color: #f44336; }
         
         .trade-input {
             width: 100%;
@@ -317,6 +377,7 @@
             padding: 15px;
             border-radius: 10px;
             margin: 10px 0;
+            border: 2px solid #FFD700;
         }
         
         .offer-buttons {
@@ -327,6 +388,14 @@
         
         .offer-buttons button {
             flex: 1;
+        }
+        
+        .demo-offer {
+            background: rgba(255,215,0,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px dashed #FFD700;
         }
     </style>
 </head>
@@ -382,19 +451,24 @@
         
         <div id="minigamesTab" class="minigames tab-content">
             <div class="minigame-area">
-                <h3>🎮 Мопс-лотерея</h3>
-                <p>Выбери карточку для участия в лотерее:</p>
+                <h3>🎰 Мопс-рулетка</h3>
+                <p>Выбери карточку для игры в рулетку:</p>
                 <div class="card-grid" id="gameCards"></div>
-                <button class="game-btn" onclick="startLottery()" id="startLotteryBtn" disabled>Начать лотерею</button>
-                <div id="lotteryResult" style="margin-top: 15px;"></div>
-            </div>
-            
-            <div class="minigame-area">
-                <h3>🎲 Угадай мопса</h3>
-                <p>Найди мопса за 3 попытки!</p>
-                <div class="game-grid" id="guessGameGrid"></div>
-                <div id="guessGameResult" style="margin-top: 15px;"></div>
-                <button class="game-btn" onclick="startGuessGame()" id="startGuessBtn">Начать игру (10 🐕)</button>
+                
+                <div class="roulette-container" id="rouletteContainer" style="display: none;">
+                    <div class="roulette-wheel" id="rouletteWheel">
+                        <div class="roulette-center">🎯</div>
+                        <div class="roulette-item">🐕</div>
+                        <div class="roulette-item">❌</div>
+                        <div class="roulette-item">🐕</div>
+                        <div class="roulette-item">❌</div>
+                        <div class="roulette-item">🐕</div>
+                        <div class="roulette-item">❌</div>
+                    </div>
+                    <div class="roulette-result" id="rouletteResult"></div>
+                </div>
+                
+                <button class="game-btn" onclick="startRoulette()" id="startRouletteBtn" disabled>Крутить рулетку</button>
             </div>
         </div>
         
@@ -405,6 +479,20 @@
                 <div class="card-grid" id="tradeCards"></div>
                 <input type="number" class="trade-input" id="tradeCoins" placeholder="Количество мопс-коинов" min="0">
                 <button class="trade-btn" onclick="sendTradeOffer()">Отправить предложение</button>
+                
+                <!-- Демо-предложение для визуализации -->
+                <div class="demo-offer">
+                    <h4>📨 Пример входящего предложения:</h4>
+                    <div class="trade-offer">
+                        <div><strong>От:</strong> @mops_lover</div>
+                        <div><strong>Мопс-коины:</strong> 150 🐕</div>
+                        <div><strong>Карточки:</strong> 🐕 Взрослый мопс (ID: #ML2847)</div>
+                        <div class="offer-buttons">
+                            <button class="trade-btn" onclick="acceptDemoOffer()">✅ Принять</button>
+                            <button class="trade-btn danger-btn" onclick="rejectDemoOffer()">❌ Отклонить</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div id="incomingOffers" style="margin-top: 20px;">
@@ -444,6 +532,9 @@
     </div>
 
     <script>
+        // Глобальный счетчик для уникальных ID
+        let globalCardIdCounter = 1000;
+
         // Данные игры
         let mopsCoins = 100;
         let totalTaps = 0;
@@ -455,15 +546,65 @@
         let selectedCardForGame = null;
         let selectedCardsForTrade = [];
         let incomingTradeOffers = [];
-        let outgoingTradeOffers = [];
+        let isRouletteSpinning = false;
 
         // Упрощенные карточки для демонстрации
         const cardTypes = [
-            { id: 1, name: "Мопс шахтер", emoji: "⛏️🐕", rarity: "common", price: 10, mining: 0.01, chance: 15, index: 1 },
-            { id: 2, name: "Взрослый мопс", emoji: "🐕", rarity: "common", price: 50, mining: 0.1, chance: 10, index: 5 },
-            { id: 3, name: "Мопс в очках", emoji: "🤓🐕", rarity: "rare", price: 200, mining: 0.5, chance: 5, index: 15 },
-            { id: 4, name: "Золотой мопс", emoji: "⭐🐕", rarity: "epic", price: 1500, mining: 5, chance: 3, index: 80 },
-            { id: 5, name: "Легендарный мопс", emoji: "💫🐕", rarity: "legendary", price: 10000, mining: 50, chance: 2, index: 500 }
+            { 
+                id: 1, 
+                name: "Мопс шахтер", 
+                emoji: "⛏️🐕", 
+                rarity: "common", 
+                price: 10, 
+                mining: 0.01, 
+                chance: 15, 
+                index: 1,
+                winChance: 40 // 40% шанс выигрыша в рулетке
+            },
+            { 
+                id: 2, 
+                name: "Взрослый мопс", 
+                emoji: "🐕", 
+                rarity: "common", 
+                price: 50, 
+                mining: 0.1, 
+                chance: 10, 
+                index: 5,
+                winChance: 45
+            },
+            { 
+                id: 3, 
+                name: "Мопс в очках", 
+                emoji: "🤓🐕", 
+                rarity: "rare", 
+                price: 200, 
+                mining: 0.5, 
+                chance: 5, 
+                index: 15,
+                winChance: 55
+            },
+            { 
+                id: 4, 
+                name: "Золотой мопс", 
+                emoji: "⭐🐕", 
+                rarity: "epic", 
+                price: 1500, 
+                mining: 5, 
+                chance: 3, 
+                index: 80,
+                winChance: 65
+            },
+            { 
+                id: 5, 
+                name: "Легендарный мопс", 
+                emoji: "💫🐕", 
+                rarity: "legendary", 
+                price: 10000, 
+                mining: 50, 
+                chance: 2, 
+                index: 500,
+                winChance: 75
+            }
         ];
 
         // Элементы DOM
@@ -482,16 +623,20 @@
             totalCards: document.getElementById('totalCards'),
             rarityScore: document.getElementById('rarityScore'),
             gameCards: document.getElementById('gameCards'),
-            startLotteryBtn: document.getElementById('startLotteryBtn'),
-            lotteryResult: document.getElementById('lotteryResult'),
-            guessGameGrid: document.getElementById('guessGameGrid'),
-            guessGameResult: document.getElementById('guessGameResult'),
-            startGuessBtn: document.getElementById('startGuessBtn'),
+            startRouletteBtn: document.getElementById('startRouletteBtn'),
+            rouletteContainer: document.getElementById('rouletteContainer'),
+            rouletteWheel: document.getElementById('rouletteWheel'),
+            rouletteResult: document.getElementById('rouletteResult'),
             tradeCards: document.getElementById('tradeCards'),
             tradeUsername: document.getElementById('tradeUsername'),
             tradeCoins: document.getElementById('tradeCoins'),
             offersList: document.getElementById('offersList')
         };
+
+        // Генератор уникального ID карточки
+        function generateUniqueCardId() {
+            return 'MC' + Date.now() + '_' + (globalCardIdCounter++);
+        }
 
         // Загрузка игры
         function loadGame() {
@@ -506,6 +651,7 @@
                     shopItems = gameData.shopItems || [];
                     shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
                     incomingTradeOffers = gameData.incomingTradeOffers || [];
+                    globalCardIdCounter = gameData.globalCardIdCounter || 1000;
                     
                     if (shopItems.length === 0) {
                         generateShopItems();
@@ -538,6 +684,7 @@
                     shopItems: shopItems,
                     shopRefreshTime: shopRefreshTime,
                     incomingTradeOffers: incomingTradeOffers,
+                    globalCardIdCounter: globalCardIdCounter,
                     timestamp: Date.now()
                 };
                 localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
@@ -631,7 +778,7 @@
             saveGame();
         }
 
-        // ПОЧИНЕННАЯ функция покупки карточки
+        // Функция покупки карточки
         function buyCard(cardId) {
             console.log('Покупка карточки ID:', cardId);
             const card = shopItems.find(c => c.id === cardId);
@@ -640,14 +787,12 @@
                 return;
             }
             
-            console.log('Найдена карточка:', card.name, 'Цена:', card.price, 'Баланс:', mopsCoins);
-            
             if (mopsCoins >= card.price) {
                 mopsCoins -= card.price;
                 // Создаем новую карточку с уникальным ID
                 const newCard = {
                     ...card,
-                    uniqueId: Date.now() + Math.random() // Уникальный ID для каждой карточки
+                    uniqueId: generateUniqueCardId() // Уникальный ID для каждой карточки
                 };
                 ownedCards.push(newCard);
                 shopItems = shopItems.filter(c => c.id !== cardId);
@@ -661,7 +806,7 @@
                 updateTradeCards();
                 saveGame();
                 
-                console.log('Карточка успешно куплена!');
+                console.log('Карточка успешно куплена! ID:', newCard.uniqueId);
             } else {
                 console.log('Недостаточно средств для покупки');
             }
@@ -688,7 +833,7 @@
             }
         }
 
-        // Обновление магазина
+        // Обновление магазина с отображением шансов
         function updateShop() {
             if (Date.now() >= shopRefreshTime) {
                 generateShopItems();
@@ -706,11 +851,15 @@
                 cardElement.innerHTML = `
                     <div class="card-header">
                         <div class="card-name">${card.emoji} ${card.name}</div>
-                        <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">${getRarityName(card.rarity)}</div>
+                        <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">
+                            ${getRarityName(card.rarity)}
+                            <span class="chance-badge">${card.winChance}% шанс</span>
+                        </div>
                     </div>
                     <div class="card-stats">
                         💰 Майнинг: ${card.mining} мопс/сек<br>
                         📊 Индекс: +${card.index}<br>
+                        🎰 Шанс в рулетке: ${card.winChance}%<br>
                         🏷️ Цена: ${card.price.toLocaleString()} 🐕
                     </div>
                     <button class="buy-btn" onclick="buyCard(${card.id})" ${mopsCoins < card.price ? 'disabled' : ''}>
@@ -725,7 +874,7 @@
             }
         }
 
-        // Обновление карточек
+        // Обновление карточек с уникальными ID
         function updateCards() {
             elements.ownedCards.innerHTML = '';
             
@@ -734,23 +883,15 @@
                 return;
             }
             
-            const cardCounts = {};
             ownedCards.forEach(card => {
-                const key = card.id;
-                if (!cardCounts[key]) {
-                    cardCounts[key] = {card: card, count: 0};
-                }
-                cardCounts[key].count++;
-            });
-            
-            Object.values(cardCounts).forEach(({card, count}) => {
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity}`;
                 cardElement.innerHTML = `
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
-                    <div style="font-size: 0.7em; opacity: 0.8;">×${count}</div>
-                    <div style="font-size: 0.7em; margin-top: 5px;">+${card.mining}/сек</div>
+                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
+                    <div style="font-size: 0.7em; margin-top: 5px; color: #FFD700;">${card.winChance}% шанс</div>
                     <div style="font-size: 0.6em; opacity: 0.6;">Индекс: ${card.index}</div>
                 `;
                 elements.ownedCards.appendChild(cardElement);
@@ -763,7 +904,7 @@
             
             if (ownedCards.length === 0) {
                 elements.gameCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек для игры</div>';
-                elements.startLotteryBtn.disabled = true;
+                elements.startRouletteBtn.disabled = true;
                 return;
             }
             
@@ -771,15 +912,17 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity} ${selectedCardForGame === index ? 'selected' : ''}`;
                 cardElement.innerHTML = `
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
+                    <div style="font-size: 0.7em; color: #FFD700;">${card.winChance}% шанс</div>
                 `;
                 cardElement.onclick = () => selectCardForGame(index);
                 elements.gameCards.appendChild(cardElement);
             });
             
-            elements.startLotteryBtn.disabled = selectedCardForGame === null;
+            elements.startRouletteBtn.disabled = selectedCardForGame === null;
         }
 
         // Обновление карточек для обмена
@@ -795,6 +938,7 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity} ${selectedCardsForTrade.includes(index) ? 'selected' : ''}`;
                 cardElement.innerHTML = `
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
@@ -819,7 +963,7 @@
                 offerElement.innerHTML = `
                     <div><strong>От:</strong> ${offer.fromUsername}</div>
                     <div><strong>Мопс-коины:</strong> ${offer.coins} 🐕</div>
-                    <div><strong>Карточки:</strong> ${offer.cards.map(card => card.emoji + ' ' + card.name).join(', ')}</div>
+                    <div><strong>Карточки:</strong> ${offer.cards.map(card => `${card.emoji} ${card.name} (ID: #${card.uniqueId.substring(2, 8)})`).join(', ')}</div>
                     <div class="offer-buttons">
                         <button class="trade-btn" onclick="acceptTradeOffer(${offerIndex})">✅ Принять</button>
                         <button class="trade-btn danger-btn" onclick="rejectTradeOffer(${offerIndex})">❌ Отклонить</button>
@@ -846,113 +990,72 @@
             updateTradeCards();
         }
 
-        // Мини-игра: Лотерея
-        function startLottery() {
-            if (selectedCardForGame === null) return;
+        // Мини-игра: Рулетка с визуализацией
+        function startRoulette() {
+            if (selectedCardForGame === null || isRouletteSpinning) return;
             
             const selectedCard = ownedCards[selectedCardForGame];
-            elements.lotteryResult.innerHTML = '<div>🎰 Крутим лотерею...</div>';
+            isRouletteSpinning = true;
+            elements.startRouletteBtn.disabled = true;
+            elements.rouletteContainer.style.display = 'block';
+            elements.rouletteResult.innerHTML = '';
             
+            // Запускаем анимацию вращения
+            elements.rouletteWheel.classList.add('roulette-spinning');
+            
+            // Останавливаем рулетку через 2 секунды
             setTimeout(() => {
-                const winChance = getRarityWeight(selectedCard.rarity) * 0.2; // Шанс зависит от редкости
-                const isWin = Math.random() < winChance;
+                elements.rouletteWheel.classList.remove('roulette-spinning');
+                isRouletteSpinning = false;
+                
+                // Определяем результат на основе шанса карточки
+                const isWin = Math.random() * 100 < selectedCard.winChance;
                 
                 if (isWin) {
-                    // Улучшение карточки
-                    const improvement = 1 + Math.random() * 0.5; // Улучшение на 100-150%
+                    // Улучшение карточки при выигрыше
+                    const improvement = 1.2 + Math.random() * 0.3; // Улучшение на 120-150%
                     selectedCard.mining *= improvement;
                     selectedCard.index = Math.floor(selectedCard.index * improvement);
+                    selectedCard.winChance = Math.min(selectedCard.winChance + 5, 90); // +5% к шансу, максимум 90%
                     
-                    elements.lotteryResult.innerHTML = `
-                        <div style="color: #4CAF50;">
-                            🎉 Победа! Ваш ${selectedCard.name} улучшился!<br>
-                            Майнинг: +${(improvement * 100 - 100).toFixed(1)}%<br>
-                            Теперь: ${selectedCard.mining.toFixed(2)}/сек
-                        </div>
-                    `;
+                    elements.rouletteResult.innerHTML = '<div class="roulette-result win">🎉 ВЫИГРЫШ! 🐕</div>';
+                    setTimeout(() => {
+                        elements.rouletteResult.innerHTML += `
+                            <div style="color: #4CAF50; font-size: 1em;">
+                                ${selectedCard.name} улучшился!<br>
+                                Майнинг: +${((improvement - 1) * 100).toFixed(1)}%<br>
+                                Теперь: ${selectedCard.mining.toFixed(2)}/сек<br>
+                                Шанс: +5% (теперь ${selectedCard.winChance}%)
+                            </div>
+                        `;
+                    }, 1000);
                 } else {
-                    // Потеря карточки
+                    // Потеря карточки при проигрыше
                     ownedCards.splice(selectedCardForGame, 1);
                     selectedCardForGame = null;
                     
-                    elements.lotteryResult.innerHTML = `
-                        <div style="color: #f44336;">
-                            💔 Проигрыш! Вы потеряли ${selectedCard.name}
-                        </div>
-                    `;
+                    elements.rouletteResult.innerHTML = '<div class="roulette-result lose">💔 ПРОИГРЫШ! ❌</div>';
+                    setTimeout(() => {
+                        elements.rouletteResult.innerHTML += `
+                            <div style="color: #f44336; font-size: 1em;">
+                                Вы потеряли ${selectedCard.name}
+                            </div>
+                        `;
+                    }, 1000);
                 }
                 
-                updateMiningRate();
-                updateDisplay();
-                updateCards();
-                updateGameCards();
-                updateTradeCards();
-                updateIndex();
-                saveGame();
+                setTimeout(() => {
+                    updateMiningRate();
+                    updateDisplay();
+                    updateCards();
+                    updateGameCards();
+                    updateTradeCards();
+                    updateIndex();
+                    saveGame();
+                    elements.startRouletteBtn.disabled = selectedCardForGame === null;
+                }, 2000);
+                
             }, 2000);
-        }
-
-        // Мини-игра: Угадай мопса
-        let guessGameActive = false;
-        let guessGameAttempts = 0;
-        let guessGameTarget = 0;
-
-        function startGuessGame() {
-            if (mopsCoins < 10) {
-                elements.guessGameResult.innerHTML = '<div style="color: #f44336;">Недостаточно мопс-коинов!</div>';
-                return;
-            }
-            
-            mopsCoins -= 10;
-            guessGameActive = true;
-            guessGameAttempts = 3;
-            guessGameTarget = Math.floor(Math.random() * 9);
-            
-            elements.guessGameGrid.innerHTML = '';
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'game-cell';
-                cell.textContent = '?';
-                cell.onclick = () => makeGuess(i, cell);
-                elements.guessGameGrid.appendChild(cell);
-            }
-            
-            elements.guessGameResult.innerHTML = '<div>Угадай где мопс! Осталось попыток: 3</div>';
-            elements.startGuessBtn.disabled = true;
-            updateDisplay();
-            saveGame();
-        }
-
-        function makeGuess(index, cell) {
-            if (!guessGameActive) return;
-            
-            guessGameAttempts--;
-            cell.classList.add('revealed');
-            
-            if (index === guessGameTarget) {
-                // Победа
-                const reward = 50 + Math.floor(Math.random() * 50);
-                mopsCoins += reward;
-                elements.guessGameResult.innerHTML = `
-                    <div style="color: #4CAF50;">
-                        🎉 Угадал! Выигрыш: ${reward} 🐕<br>
-                        Осталось попыток: ${guessGameAttempts}
-                    </div>
-                `;
-                guessGameActive = false;
-                elements.startGuessBtn.disabled = false;
-            } else {
-                if (guessGameAttempts > 0) {
-                    elements.guessGameResult.innerHTML = `<div>Не угадал! Осталось попыток: ${guessGameAttempts}</div>`;
-                } else {
-                    elements.guessGameResult.innerHTML = '<div style="color: #f44336;">💔 Проигрыш! Мопс был в другой клетке</div>';
-                    guessGameActive = false;
-                    elements.startGuessBtn.disabled = false;
-                }
-            }
-            
-            updateDisplay();
-            saveGame();
         }
 
         // Система обмена
@@ -975,28 +1078,46 @@
                 return;
             }
             
-            // В реальном приложении здесь был бы запрос к серверу
-            // Для демонстрации просто добавляем в локальные предложения
+            // Создаем предложение обмена
             const tradeOffer = {
-                fromUsername: 'Вы', // В реальном приложении здесь был бы username текущего пользователя
+                fromUsername: username,
                 coins: coins,
-                cards: selectedCardsForTrade.map(index => ownedCards[index])
+                cards: selectedCardsForTrade.map(index => ({...ownedCards[index]}))
             };
+            
+            // В реальном приложении здесь был бы запрос к серверу
+            alert(`Предложение обмена отправлено игроку @${username}!`);
             
             // Очищаем форму
             elements.tradeUsername.value = '';
             elements.tradeCoins.value = '';
             selectedCardsForTrade = [];
             updateTradeCards();
+        }
+
+        // Демо-функции для визуализации обмена
+        function acceptDemoOffer() {
+            // Добавляем демо-карточку и коины
+            const demoCard = {
+                ...cardTypes[1], // Взрослый мопс
+                uniqueId: generateUniqueCardId()
+            };
+            ownedCards.push(demoCard);
+            mopsCoins += 150;
             
-            alert(`Предложение обмена отправлено игроку ${username}!`);
+            updateMiningRate();
+            updateDisplay();
+            updateCards();
+            updateGameCards();
+            updateTradeCards();
+            updateIndex();
+            saveGame();
             
-            // В демо-версии просто показываем сообщение
-            elements.offersList.innerHTML = `
-                <div style="text-align: center; opacity: 0.7;">
-                    В реальном приложении здесь бы отображались входящие предложения от других игроков
-                </div>
-            `;
+            alert('Демо-обмен принят! Вы получили 150 🐕 и Взрослого мопса');
+        }
+
+        function rejectDemoOffer() {
+            alert('Демо-обмен отклонен');
         }
 
         function acceptTradeOffer(offerIndex) {
@@ -1004,7 +1125,10 @@
             
             // Добавляем полученные карточки и коины
             mopsCoins += offer.coins;
-            ownedCards.push(...offer.cards);
+            offer.cards.forEach(card => {
+                card.uniqueId = generateUniqueCardId(); // Генерируем новые уникальные ID
+                ownedCards.push(card);
+            });
             
             // Удаляем предложение
             incomingTradeOffers.splice(offerIndex, 1);
@@ -1064,17 +1188,6 @@
                 'mythic': 'Мифическая'
             };
             return names[rarity] || 'Обычная';
-        }
-
-        function getRarityWeight(rarity) {
-            const weights = {
-                'common': 1,
-                'rare': 3,
-                'epic': 8,
-                'legendary': 20,
-                'mythic': 50
-            };
-            return weights[rarity] || 1;
         }
 
         // Обновление отображения
