@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎮 Таполка</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .coin {
+            font-size: 120px;
+            cursor: pointer;
+            margin: 30px 0;
+            transition: transform 0.1s;
+        }
+        .coin:active {
+            transform: scale(0.9);
+        }
+        .balance {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .tap-btn {
+            background: #ffd700;
+            color: black;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .stats {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Таполка</h1>
+        
+        <div class="stats">
+            <div class="balance">
+                <span id="coins">0</span> 🪙
+            </div>
+            <div>Уровень: <span id="level">Новичок</span></div>
+        </div>
+
+        <div class="coin" onclick="tapCoin()">💰</div>
+        
+        <button class="tap-btn" onclick="tapCoin()">🔥 ТАПНУТЬ!</button>
+        
+        <div class="stats">
+            <div>Всего тапов: <span id="totalTaps">0</span></div>
+            <div>До след. уровня: <span id="nextLevel">10</span> монет</div>
+        </div>
+    </div>
+
+    <script>
+        let coins = 0;
+        let totalTaps = 0;
+
+        function tapCoin() {
+            coins++;
+            totalTaps++;
+            updateDisplay();
+            
+            // Анимация
+            document.querySelector('.coin').style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                document.querySelector('.coin').style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        function updateDisplay() {
+            document.getElementById('coins').textContent = coins;
+            document.getElementById('totalTaps').textContent = totalTaps;
+            
+            // Уровни
+            let level = 'Новичок';
+            let nextLevel = 10;
+            
+            if (coins >= 10) { level = 'Любитель'; nextLevel = 50; }
+            if (coins >= 50) { level = 'Профи'; nextLevel = 100; }
+            if (coins >= 100) { level = 'Мастер'; nextLevel = 500; }
+            if (coins >= 500) { level = 'Король'; nextLevel = 'MAX'; }
+            
+            document.getElementById('level').textContent = level;
+            document.getElementById('nextLevel').textContent = nextLevel;
+        }
+
+        // Инициализация Telegram
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+    </script>
+</body>
+</html>
