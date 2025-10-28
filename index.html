@@ -135,9 +135,6 @@
         .card-name {
             font-weight: bold;
             font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
         .card-rarity {
@@ -299,35 +296,6 @@
             border-radius: 15px;
             margin: 10px 0;
             text-align: center;
-        }
-        
-        /* Стили для изображений */
-        .card-image {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        
-        .shop-card-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-        }
-        
-        .owned-card-image {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            margin: 0 auto 5px auto;
-        }
-        
-        .image-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
         }
         
         /* Стили для рулетки */
@@ -576,27 +544,11 @@
         let referralBonusEndTime = 0;
         let tapMultiplier = 1;
 
-        // Base64 изображения для мопсов
-        const mopsImages = {
-            miner: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiM4QjQ1MTMiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNCIgY3k9IjE4IiByPSIyIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjM2IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiMzMzMiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTUiIHk9IjQwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMjUiIHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9IiM2NjYiLz4KPC9zdmc+",
-            
-            adult: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiNENjI5MUUiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNCIgY3k9IjE4IiByPSIyIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjM2IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiMzMzMiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjYiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxMiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxMiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHBhdGggZD0iTTE1IDI1IFEyMCAyMCAzMCAyMCBRNDAgMjAgNDUgMjUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJub25lIi8+Cjwvc3ZnPg==",
-            
-            glasses: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiM5QzI3QjAiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB4PSIyMCIgeT0iMTUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiM2NjYiIG9wYWNpdHk9IjAuMyIvPgo8Y2lyY2xlIGN4PSIyNSIgY3k9IjE4IiByPSIyIiBmaWxsPSIjMzMzIi8+CjxjaXJjbGUgY3g9IjM1IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiMzMzMiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjUiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTUiIHk9IjQwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDAiIHk9IjQwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNSIgcng9IjIiIGZpbGw9IiNGRkZGRkYiLz4KPHBhdGggZD0iTTI1IDIzIEwyOCAyNiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz4KPHBhdGggZD0iTTM1IDIzIEwzMiAyNiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+",
-            
-            golden: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiNGRjk4MDAiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNCIgY3k9IjE4IiByPSIyIiBmaWxsPSIjRkZENzAwIi8+CjxjaXJjbGUgY3g9IjM2IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiNGRkQ3MDAiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iI0ZGRDcwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjYiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyNSIgcj0iMiIgZmlsbD0iI0ZGRDcwMCIvPgo8cGF0aCBkPSJNMjUgMTUgTDM1IDE1IiBzdHJva2U9IiNGRkQ3MDAiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSIzMCIgY3k9IjEwIiByPSIzIiBmaWxsPSIjRkZENzAwIi8+Cjwvc3ZnPg==",
-            
-            legendary: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiNGRkZGMDAiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNCIgY3k9IjE4IiByPSIyIiBmaWxsPSIjRkYwMEZGIi8+CjxjaXJjbGUgY3g9IjM2IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiNGRjAwRkYiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iI0ZGMDBGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjciIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTAiIHk9IjM3IiB3aWR0aD0iNyIgaGVpZ2h0PSIxNiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDMiIHk9IjM3IiB3aWR0aD0iNyIgaGVpZ2h0PSIxNiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHBhdGggZD0iTTE1IDE1IEw0NSAxNSIgc3Ryb2tlPSIjRkYwMEZGIiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSI4IiByPSI0IiBmaWxsPSIjRkYwMEZGIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTUiIHI9IjIiIGZpbGw9IiNGRjAwRkYiLz4KPGNpcmNsZSBjeD0iNDUiIGN5PSIxNSIgcj0iMiIgZmlsbD0iI0ZGMDBGRiIvPgo8L3N2Zz4=",
-            
-            referral: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTAiIGZpbGw9IiM5QzI3QjAiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIyMCIgcj0iOCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIyNCIgY3k9IjE4IiByPSIyIiBmaWxsPSIjNENBRjUwIi8+CjxjaXJjbGUgY3g9IjM2IiBjeT0iMTgiIHI9IjIiIGZpbGw9IiM0Q0FGNTAiLz4KPHBhdGggZD0iTTIwIDMwIEMyMCAzNSAyNSAzNSAzMCAzNSBDMzUgMzUgNDAgMzUgNDAgMzAiIHN0cm9rZT0iIzRDQUY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxjaXJjbGUgY3g9IjMwIiBjeT0iNDUiIHI9IjYiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMTIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iNDIiIHk9IjM4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNGRkZGRkYiLz4KPHJlY3QgeD0iMjUiIHk9IjEyIiB3aWR0aD0iMTAiIGhlaWdodD0iOCIgcng9IjIiIGZpbGw9IiNGRjcxMDAiLz4KPGNpcmNsZSBjeD0iMzAiIGN5PSIxNiIgcj0iMiIgZmlsbD0iI0ZGN0YwRiIvPgo8L3N2Zz4="
-        };
-
-        // Карточки для игры с изображениями
+        // Карточки для игры
         const cardTypes = [
             { 
                 id: 1, 
                 name: "Мопс шахтер", 
-                image: mopsImages.miner,
                 emoji: "⛏️🐕", 
                 rarity: "common", 
                 price: 10, 
@@ -607,7 +559,6 @@
             { 
                 id: 2, 
                 name: "Взрослый мопс", 
-                image: mopsImages.adult,
                 emoji: "🐕", 
                 rarity: "common", 
                 price: 50, 
@@ -618,7 +569,6 @@
             { 
                 id: 3, 
                 name: "Мопс в очках", 
-                image: mopsImages.glasses,
                 emoji: "🤓🐕", 
                 rarity: "rare", 
                 price: 200, 
@@ -629,7 +579,6 @@
             { 
                 id: 4, 
                 name: "Золотой мопс", 
-                image: mopsImages.golden,
                 emoji: "⭐🐕", 
                 rarity: "epic", 
                 price: 1500, 
@@ -640,7 +589,6 @@
             { 
                 id: 5, 
                 name: "Легендарный мопс", 
-                image: mopsImages.legendary,
                 emoji: "💫🐕", 
                 rarity: "legendary", 
                 price: 10000, 
@@ -651,7 +599,6 @@
             {
                 id: 6,
                 name: "Реферальный мопс",
-                image: mopsImages.referral,
                 emoji: "🎁🐕",
                 rarity: "rare",
                 price: 0,
@@ -704,12 +651,6 @@
         // Генератор реферального кода
         function generateReferralCode() {
             return Math.random().toString(36).substring(2, 6).toUpperCase();
-        }
-
-        // Функция для получения визуала карточки
-        function getCardVisual(card, size = 'shop') {
-            const imageClass = size === 'shop' ? 'shop-card-image' : 'owned-card-image';
-            return `<img src="${card.image}" class="${imageClass}" alt="${card.name}">`;
         }
 
         // Загрузка игры
@@ -931,10 +872,7 @@
                 cardElement.className = `card ${card.rarity}`;
                 cardElement.innerHTML = `
                     <div class="card-header">
-                        <div class="card-name">
-                            ${getCardVisual(card, 'shop')}
-                            ${card.name}
-                        </div>
+                        <div class="card-name">${card.emoji} ${card.name}</div>
                         <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">
                             ${getRarityName(card.rarity)}
                             <span class="chance-badge">${card.shopChance}% в магазине</span>
@@ -972,7 +910,7 @@
                 cardElement.className = `owned-card ${card.rarity}`;
                 cardElement.innerHTML = `
                     <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    ${getCardVisual(card, 'owned')}
+                    <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
                     <div style="font-size: 0.7em; margin-top: 5px; color: #FFD700;">${card.shopChance || 0}% в магазине</div>
@@ -997,7 +935,7 @@
                 cardElement.className = `owned-card ${card.rarity} ${selectedCardForGame === index ? 'selected' : ''}`;
                 cardElement.innerHTML = `
                     <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    ${getCardVisual(card, 'owned')}
+                    <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
                     <div style="font-size: 0.7em; color: #FFD700;">50% шанс в рулетке</div>
