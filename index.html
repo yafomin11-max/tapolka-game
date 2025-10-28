@@ -106,7 +106,7 @@
             background: rgba(255,255,255,0.2);
         }
         
-        .shop, .cards, .index, .minigames, .trade {
+        .shop, .cards, .index, .minigames, .trade, .promo, .referral {
             display: none;
         }
         
@@ -124,6 +124,7 @@
         .card.epic { border-color: #9C27B0; background: rgba(156,39,176,0.1); }
         .card.legendary { border-color: #FF9800; background: rgba(255,152,0,0.1); }
         .card.mythic { border-color: #FF0000; background: rgba(255,0,0,0.1); }
+        .card.referral { border-color: #9C27B0; background: rgba(156,39,176,0.2); }
         
         .card-header {
             display: flex;
@@ -160,7 +161,7 @@
             margin-left: 5px;
         }
         
-        .buy-btn, .game-btn, .trade-btn {
+        .buy-btn, .game-btn, .trade-btn, .promo-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -173,7 +174,7 @@
             margin-top: 5px;
         }
         
-        .buy-btn:hover, .game-btn:hover, .trade-btn:hover {
+        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover {
             background: #45a049;
         }
         
@@ -361,7 +362,7 @@
         .win { color: #4CAF50; }
         .lose { color: #f44336; }
         
-        .trade-input {
+        .trade-input, .promo-input {
             width: 100%;
             padding: 10px;
             border-radius: 10px;
@@ -372,30 +373,30 @@
             font-size: 1em;
         }
         
-        .trade-offer {
+        .referral-link {
             background: rgba(255,255,255,0.1);
             padding: 15px;
             border-radius: 10px;
             margin: 10px 0;
-            border: 2px solid #FFD700;
+            word-break: break-all;
+            font-size: 0.9em;
         }
         
-        .offer-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .offer-buttons button {
-            flex: 1;
-        }
-        
-        .demo-offer {
-            background: rgba(255,215,0,0.1);
-            padding: 15px;
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
             border-radius: 10px;
-            margin: 10px 0;
-            border: 2px dashed #FFD700;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .bonus-timer {
+            color: #FFD700;
+            font-weight: bold;
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -412,6 +413,7 @@
             </div>
             <div style="text-align: center;">
                 Уровень: <span id="level">Новичок</span>
+                <div id="bonusTimer" class="bonus-timer" style="display: none;"></div>
             </div>
         </div>
         
@@ -429,6 +431,8 @@
             <div class="tab" onclick="switchTab('cards')">Карточки</div>
             <div class="tab" onclick="switchTab('minigames')">Игры</div>
             <div class="tab" onclick="switchTab('trade')">Обмен</div>
+            <div class="tab" onclick="switchTab('referral')">Рефералы</div>
+            <div class="tab" onclick="switchTab('promo')">Промо</div>
             <div class="tab" onclick="switchTab('index')">Индекс</div>
         </div>
         
@@ -452,7 +456,7 @@
         <div id="minigamesTab" class="minigames tab-content">
             <div class="minigame-area">
                 <h3>🎰 Мопс-рулетка</h3>
-                <p>Выбери карточку для игры в рулетку:</p>
+                <p>Выбери карточку для игры в рулетку (50% шанс):</p>
                 <div class="card-grid" id="gameCards"></div>
                 
                 <div class="roulette-container" id="rouletteContainer" style="display: none;">
@@ -475,29 +479,49 @@
         <div id="tradeTab" class="trade tab-content">
             <div class="minigame-area">
                 <h3>🤝 Обмен с игроком</h3>
-                <input type="text" class="trade-input" id="tradeUsername" placeholder="Введите username игрока (без @)">
-                <div class="card-grid" id="tradeCards"></div>
-                <input type="number" class="trade-input" id="tradeCoins" placeholder="Количество мопс-коинов" min="0">
-                <button class="trade-btn" onclick="sendTradeOffer()">Отправить предложение</button>
+                <p style="opacity: 0.7; font-size: 0.9em;">Система обменов в разработке...</p>
+            </div>
+        </div>
+        
+        <div id="referralTab" class="referral tab-content">
+            <div class="minigame-area">
+                <h3>👥 Реферальная программа</h3>
+                <p>Пригласи друзей и получай бонусы!</p>
                 
-                <!-- Демо-предложение для визуализации -->
-                <div class="demo-offer">
-                    <h4>📨 Пример входящего предложения:</h4>
-                    <div class="trade-offer">
-                        <div><strong>От:</strong> @mops_lover</div>
-                        <div><strong>Мопс-коины:</strong> 150 🐕</div>
-                        <div><strong>Карточки:</strong> 🐕 Взрослый мопс (ID: #ML2847)</div>
-                        <div class="offer-buttons">
-                            <button class="trade-btn" onclick="acceptDemoOffer()">✅ Принять</button>
-                            <button class="trade-btn danger-btn" onclick="rejectDemoOffer()">❌ Отклонить</button>
-                        </div>
+                <div class="referral-link" id="referralLink">
+                    https://t.me/your_bot?start=ref_loading...
+                </div>
+                <button class="copy-btn" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+                
+                <div class="stats" style="margin-top: 15px;">
+                    <div>Приглашено друзей: <span id="referralCount">0</span></div>
+                    <div>Всего получено: <span id="referralEarnings">0</span> 🐕</div>
+                </div>
+                
+                <div class="card" style="margin-top: 15px;">
+                    <h4>🎁 Бонусы за приглашение:</h4>
+                    <div class="card-stats">
+                        • Вы получаете: <strong>500 🐕</strong><br>
+                        • Друг получает: <strong>1.5x доход на 30 минут</strong><br>
+                        • Уникальный мопс: <strong>Реферальный мопс</strong>
                     </div>
                 </div>
             </div>
-            
-            <div id="incomingOffers" style="margin-top: 20px;">
-                <h3>📨 Входящие предложения</h3>
-                <div id="offersList"></div>
+        </div>
+        
+        <div id="promoTab" class="promo tab-content">
+            <div class="minigame-area">
+                <h3>🎟️ Промокоды</h3>
+                <p>Введи промокод чтобы получить награду!</p>
+                
+                <input type="text" class="promo-input" id="promoCode" placeholder="Введите промокод">
+                <button class="promo-btn" onclick="activatePromoCode()">Активировать</button>
+                
+                <div id="promoResult" style="margin-top: 15px;"></div>
+                
+                <div class="stats" style="margin-top: 15px;">
+                    <div>Активировано промокодов: <span id="activatedPromos">0</span></div>
+                </div>
             </div>
         </div>
         
@@ -544,9 +568,33 @@
         let shopItems = [];
         let shopRefreshTime = Date.now() + 30 * 60 * 1000;
         let selectedCardForGame = null;
-        let selectedCardsForTrade = [];
-        let incomingTradeOffers = [];
         let isRouletteSpinning = false;
+        let referralCount = 0;
+        let referralEarnings = 0;
+        let activatedPromos = [];
+        let bonusMultiplier = 1;
+        let bonusEndTime = 0;
+
+        // Уникальный реферальный мопс
+        const referralMops = {
+            id: 999,
+            name: "Реферальный мопс",
+            emoji: "🤝🐕",
+            rarity: "referral",
+            price: 0,
+            mining: 2,
+            chance: 0,
+            index: 100,
+            winChance: 50,
+            uniqueId: "REF_MOPS_001"
+        };
+
+        // Промокоды
+        const promoCodes = {
+            "mops": { coins: 5000, used: false },
+            "mandarin": { coins: 5000, used: false },
+            "kolbasa": { coins: 5000, used: false }
+        };
 
         // Упрощенные карточки для демонстрации
         const cardTypes = [
@@ -559,7 +607,7 @@
                 mining: 0.01, 
                 chance: 15, 
                 index: 1,
-                winChance: 40 // 40% шанс выигрыша в рулетке
+                winChance: 50 // Фиксированный шанс 50%
             },
             { 
                 id: 2, 
@@ -570,7 +618,7 @@
                 mining: 0.1, 
                 chance: 10, 
                 index: 5,
-                winChance: 45
+                winChance: 50
             },
             { 
                 id: 3, 
@@ -581,7 +629,7 @@
                 mining: 0.5, 
                 chance: 5, 
                 index: 15,
-                winChance: 55
+                winChance: 50
             },
             { 
                 id: 4, 
@@ -592,7 +640,7 @@
                 mining: 5, 
                 chance: 3, 
                 index: 80,
-                winChance: 65
+                winChance: 50
             },
             { 
                 id: 5, 
@@ -603,7 +651,7 @@
                 mining: 50, 
                 chance: 2, 
                 index: 500,
-                winChance: 75
+                winChance: 50
             }
         ];
 
@@ -627,15 +675,24 @@
             rouletteContainer: document.getElementById('rouletteContainer'),
             rouletteWheel: document.getElementById('rouletteWheel'),
             rouletteResult: document.getElementById('rouletteResult'),
-            tradeCards: document.getElementById('tradeCards'),
-            tradeUsername: document.getElementById('tradeUsername'),
-            tradeCoins: document.getElementById('tradeCoins'),
-            offersList: document.getElementById('offersList')
+            referralLink: document.getElementById('referralLink'),
+            referralCount: document.getElementById('referralCount'),
+            referralEarnings: document.getElementById('referralEarnings'),
+            promoCode: document.getElementById('promoCode'),
+            promoResult: document.getElementById('promoResult'),
+            activatedPromos: document.getElementById('activatedPromos'),
+            bonusTimer: document.getElementById('bonusTimer')
         };
 
         // Генератор уникального ID карточки
         function generateUniqueCardId() {
             return 'MC' + Date.now() + '_' + (globalCardIdCounter++);
+        }
+
+        // Генерация реферальной ссылки
+        function generateReferralLink() {
+            const userId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            return `https://t.me/your_bot?start=ref_${userId}`;
         }
 
         // Загрузка игры
@@ -650,8 +707,19 @@
                     miningRate = gameData.miningRate || 0;
                     shopItems = gameData.shopItems || [];
                     shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
-                    incomingTradeOffers = gameData.incomingTradeOffers || [];
                     globalCardIdCounter = gameData.globalCardIdCounter || 1000;
+                    referralCount = gameData.referralCount || 0;
+                    referralEarnings = gameData.referralEarnings || 0;
+                    activatedPromos = gameData.activatedPromos || [];
+                    bonusMultiplier = gameData.bonusMultiplier || 1;
+                    bonusEndTime = gameData.bonusEndTime || 0;
+                    
+                    // Загружаем состояние промокодов
+                    Object.keys(promoCodes).forEach(code => {
+                        if (activatedPromos.includes(code)) {
+                            promoCodes[code].used = true;
+                        }
+                    });
                     
                     if (shopItems.length === 0) {
                         generateShopItems();
@@ -669,8 +737,8 @@
             updateCards();
             updateIndex();
             updateGameCards();
-            updateTradeCards();
-            updateTradeOffers();
+            updateReferralInfo();
+            updatePromoInfo();
         }
 
         // Сохранение игры
@@ -683,8 +751,12 @@
                     miningRate: miningRate,
                     shopItems: shopItems,
                     shopRefreshTime: shopRefreshTime,
-                    incomingTradeOffers: incomingTradeOffers,
                     globalCardIdCounter: globalCardIdCounter,
+                    referralCount: referralCount,
+                    referralEarnings: referralEarnings,
+                    activatedPromos: activatedPromos,
+                    bonusMultiplier: bonusMultiplier,
+                    bonusEndTime: bonusEndTime,
                     timestamp: Date.now()
                 };
                 localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
@@ -693,12 +765,13 @@
             }
         }
 
-        // Тап по мопсу
+        // Тап по мопсу с учетом бонуса
         function tapMops() {
-            mopsCoins++;
+            const coinsEarned = 1 * bonusMultiplier;
+            mopsCoins += coinsEarned;
             totalTaps++;
             
-            createFloatingMops();
+            createFloatingMops(coinsEarned);
             updateDisplay();
             
             elements.mops.classList.add('mops-animation');
@@ -714,10 +787,10 @@
         }
 
         // Создание летящего мопса
-        function createFloatingMops() {
+        function createFloatingMops(amount) {
             const floatingMops = document.createElement('div');
             floatingMops.className = 'floating-mops';
-            floatingMops.textContent = '+1 🐕';
+            floatingMops.textContent = `+${amount} 🐕`;
             floatingMops.style.left = Math.random() * 200 + 100 + 'px';
             floatingMops.style.top = '250px';
             
@@ -735,16 +808,15 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             
-            const tabs = ['tap', 'shop', 'cards', 'minigames', 'trade', 'index'];
+            const tabs = ['tap', 'shop', 'cards', 'minigames', 'trade', 'referral', 'promo', 'index'];
             const tabIndex = tabs.indexOf(tabName) + 1;
             document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
             document.getElementById(tabName + 'Tab').style.display = 'block';
             
             if (tabName === 'minigames') {
                 updateGameCards();
-            } else if (tabName === 'trade') {
-                updateTradeCards();
-                updateTradeOffers();
+            } else if (tabName === 'referral') {
+                updateReferralInfo();
             }
         }
 
@@ -792,7 +864,7 @@
                 // Создаем новую карточку с уникальным ID
                 const newCard = {
                     ...card,
-                    uniqueId: generateUniqueCardId() // Уникальный ID для каждой карточки
+                    uniqueId: generateUniqueCardId()
                 };
                 ownedCards.push(newCard);
                 shopItems = shopItems.filter(c => c.id !== cardId);
@@ -803,7 +875,6 @@
                 updateCards();
                 updateIndex();
                 updateGameCards();
-                updateTradeCards();
                 saveGame();
                 
                 console.log('Карточка успешно куплена! ID:', newCard.uniqueId);
@@ -812,16 +883,28 @@
             }
         }
 
-        // Обновление скорости майнинга
+        // Обновление скорости майнинга с учетом бонуса
         function updateMiningRate() {
-            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0);
-            elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
+            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0) * bonusMultiplier;
+            if (bonusMultiplier > 1) {
+                elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек (x${bonusMultiplier} бонус!)`;
+            } else {
+                elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
+            }
         }
 
         // Майнинг в фоне
         function processMining() {
             const now = Date.now();
             const timePassed = (now - lastMiningTime) / 1000;
+            
+            // Проверяем бонусное время
+            if (bonusEndTime > 0 && now >= bonusEndTime) {
+                bonusMultiplier = 1;
+                bonusEndTime = 0;
+                updateMiningRate();
+                elements.bonusTimer.style.display = 'none';
+            }
             
             if (timePassed > 0) {
                 const minedCoins = miningRate * timePassed;
@@ -831,9 +914,18 @@
                 updateIndex();
                 saveGame();
             }
+            
+            // Обновляем таймер бонуса
+            if (bonusEndTime > 0) {
+                const timeLeft = Math.max(0, bonusEndTime - now);
+                const minutes = Math.floor(timeLeft / 60000);
+                const seconds = Math.floor((timeLeft % 60000) / 1000);
+                elements.bonusTimer.textContent = `Бонус x1.5: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                elements.bonusTimer.style.display = 'block';
+            }
         }
 
-        // Обновление магазина с отображением шансов
+        // Обновление магазина
         function updateShop() {
             if (Date.now() >= shopRefreshTime) {
                 generateShopItems();
@@ -874,7 +966,7 @@
             }
         }
 
-        // Обновление карточек с уникальными ID
+        // Обновление карточек
         function updateCards() {
             elements.ownedCards.innerHTML = '';
             
@@ -887,7 +979,7 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity}`;
                 cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
+                    <div class="card-id">#${card.uniqueId ? card.uniqueId.substring(2, 8) : 'NEW'}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
@@ -912,7 +1004,7 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity} ${selectedCardForGame === index ? 'selected' : ''}`;
                 cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
+                    <div class="card-id">#${card.uniqueId ? card.uniqueId.substring(2, 8) : 'NEW'}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
@@ -925,52 +1017,16 @@
             elements.startRouletteBtn.disabled = selectedCardForGame === null;
         }
 
-        // Обновление карточек для обмена
-        function updateTradeCards() {
-            elements.tradeCards.innerHTML = '';
-            
-            if (ownedCards.length === 0) {
-                elements.tradeCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек для обмена</div>';
-                return;
-            }
-            
-            ownedCards.forEach((card, index) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `owned-card ${card.rarity} ${selectedCardsForTrade.includes(index) ? 'selected' : ''}`;
-                cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    <div style="font-size: 2em;">${card.emoji}</div>
-                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
-                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                `;
-                cardElement.onclick = () => toggleCardForTrade(index);
-                elements.tradeCards.appendChild(cardElement);
-            });
+        // Обновление реферальной информации
+        function updateReferralInfo() {
+            elements.referralLink.textContent = generateReferralLink();
+            elements.referralCount.textContent = referralCount;
+            elements.referralEarnings.textContent = referralEarnings;
         }
 
-        // Обновление предложений обмена
-        function updateTradeOffers() {
-            elements.offersList.innerHTML = '';
-            
-            if (incomingTradeOffers.length === 0) {
-                elements.offersList.innerHTML = '<div style="text-align: center; opacity: 0.7;">Нет входящих предложений</div>';
-                return;
-            }
-            
-            incomingTradeOffers.forEach((offer, offerIndex) => {
-                const offerElement = document.createElement('div');
-                offerElement.className = 'trade-offer';
-                offerElement.innerHTML = `
-                    <div><strong>От:</strong> ${offer.fromUsername}</div>
-                    <div><strong>Мопс-коины:</strong> ${offer.coins} 🐕</div>
-                    <div><strong>Карточки:</strong> ${offer.cards.map(card => `${card.emoji} ${card.name} (ID: #${card.uniqueId.substring(2, 8)})`).join(', ')}</div>
-                    <div class="offer-buttons">
-                        <button class="trade-btn" onclick="acceptTradeOffer(${offerIndex})">✅ Принять</button>
-                        <button class="trade-btn danger-btn" onclick="rejectTradeOffer(${offerIndex})">❌ Отклонить</button>
-                    </div>
-                `;
-                elements.offersList.appendChild(offerElement);
-            });
+        // Обновление информации о промокодах
+        function updatePromoInfo() {
+            elements.activatedPromos.textContent = activatedPromos.length;
         }
 
         // Выбор карточки для игры
@@ -979,18 +1035,7 @@
             updateGameCards();
         }
 
-        // Переключение карточки для обмена
-        function toggleCardForTrade(index) {
-            const cardIndex = selectedCardsForTrade.indexOf(index);
-            if (cardIndex > -1) {
-                selectedCardsForTrade.splice(cardIndex, 1);
-            } else {
-                selectedCardsForTrade.push(index);
-            }
-            updateTradeCards();
-        }
-
-        // Мини-игра: Рулетка с визуализацией
+        // Мини-игра: Рулетка с фиксированным шансом 50%
         function startRoulette() {
             if (selectedCardForGame === null || isRouletteSpinning) return;
             
@@ -1008,15 +1053,14 @@
                 elements.rouletteWheel.classList.remove('roulette-spinning');
                 isRouletteSpinning = false;
                 
-                // Определяем результат на основе шанса карточки
-                const isWin = Math.random() * 100 < selectedCard.winChance;
+                // Фиксированный шанс 50%
+                const isWin = Math.random() < 0.5;
                 
                 if (isWin) {
                     // Улучшение карточки при выигрыше
                     const improvement = 1.2 + Math.random() * 0.3; // Улучшение на 120-150%
                     selectedCard.mining *= improvement;
                     selectedCard.index = Math.floor(selectedCard.index * improvement);
-                    selectedCard.winChance = Math.min(selectedCard.winChance + 5, 90); // +5% к шансу, максимум 90%
                     
                     elements.rouletteResult.innerHTML = '<div class="roulette-result win">🎉 ВЫИГРЫШ! 🐕</div>';
                     setTimeout(() => {
@@ -1024,8 +1068,7 @@
                             <div style="color: #4CAF50; font-size: 1em;">
                                 ${selectedCard.name} улучшился!<br>
                                 Майнинг: +${((improvement - 1) * 100).toFixed(1)}%<br>
-                                Теперь: ${selectedCard.mining.toFixed(2)}/сек<br>
-                                Шанс: +5% (теперь ${selectedCard.winChance}%)
+                                Теперь: ${selectedCard.mining.toFixed(2)}/сек
                             </div>
                         `;
                     }, 1000);
@@ -1049,7 +1092,6 @@
                     updateDisplay();
                     updateCards();
                     updateGameCards();
-                    updateTradeCards();
                     updateIndex();
                     saveGame();
                     elements.startRouletteBtn.disabled = selectedCardForGame === null;
@@ -1058,98 +1100,77 @@
             }, 2000);
         }
 
-        // Система обмена
-        function sendTradeOffer() {
-            const username = elements.tradeUsername.value.trim();
-            const coins = parseInt(elements.tradeCoins.value) || 0;
-            
-            if (!username) {
-                alert('Введите username игрока');
-                return;
-            }
-            
-            if (selectedCardsForTrade.length === 0 && coins === 0) {
-                alert('Выберите карточки или укажите количество мопс-коинов для обмена');
-                return;
-            }
-            
-            if (coins > mopsCoins) {
-                alert('Недостаточно мопс-коинов');
-                return;
-            }
-            
-            // Создаем предложение обмена
-            const tradeOffer = {
-                fromUsername: username,
-                coins: coins,
-                cards: selectedCardsForTrade.map(index => ({...ownedCards[index]}))
-            };
-            
-            // В реальном приложении здесь был бы запрос к серверу
-            alert(`Предложение обмена отправлено игроку @${username}!`);
-            
-            // Очищаем форму
-            elements.tradeUsername.value = '';
-            elements.tradeCoins.value = '';
-            selectedCardsForTrade = [];
-            updateTradeCards();
-        }
-
-        // Демо-функции для визуализации обмена
-        function acceptDemoOffer() {
-            // Добавляем демо-карточку и коины
-            const demoCard = {
-                ...cardTypes[1], // Взрослый мопс
-                uniqueId: generateUniqueCardId()
-            };
-            ownedCards.push(demoCard);
-            mopsCoins += 150;
-            
-            updateMiningRate();
-            updateDisplay();
-            updateCards();
-            updateGameCards();
-            updateTradeCards();
-            updateIndex();
-            saveGame();
-            
-            alert('Демо-обмен принят! Вы получили 150 🐕 и Взрослого мопса');
-        }
-
-        function rejectDemoOffer() {
-            alert('Демо-обмен отклонен');
-        }
-
-        function acceptTradeOffer(offerIndex) {
-            const offer = incomingTradeOffers[offerIndex];
-            
-            // Добавляем полученные карточки и коины
-            mopsCoins += offer.coins;
-            offer.cards.forEach(card => {
-                card.uniqueId = generateUniqueCardId(); // Генерируем новые уникальные ID
-                ownedCards.push(card);
+        // Копирование реферальной ссылки
+        function copyReferralLink() {
+            const link = elements.referralLink.textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Ссылка скопирована в буфер обмена!');
+            }).catch(() => {
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Ссылка скопирована в буфер обмена!');
             });
+        }
+
+        // Активация реферального бонуса
+        function activateReferralBonus() {
+            mopsCoins += 500;
+            referralEarnings += 500;
+            bonusMultiplier = 1.5;
+            bonusEndTime = Date.now() + 30 * 60 * 1000; // 30 минут
             
-            // Удаляем предложение
-            incomingTradeOffers.splice(offerIndex, 1);
+            // Добавляем реферального мопса
+            if (!ownedCards.some(card => card.id === referralMops.id)) {
+                ownedCards.push({
+                    ...referralMops,
+                    uniqueId: generateUniqueCardId()
+                });
+            }
             
             updateMiningRate();
             updateDisplay();
             updateCards();
-            updateGameCards();
-            updateTradeCards();
-            updateTradeOffers();
-            updateIndex();
+            updateReferralInfo();
             saveGame();
             
-            alert('Обмен принят!');
+            alert('Реферальный бонус активирован! Вы получили 500 🐕, x1.5 бонус на 30 минут и Реферального мопса!');
         }
 
-        function rejectTradeOffer(offerIndex) {
-            incomingTradeOffers.splice(offerIndex, 1);
-            updateTradeOffers();
+        // Активация промокода
+        function activatePromoCode() {
+            const code = elements.promoCode.value.trim().toLowerCase();
+            
+            if (!code) {
+                elements.promoResult.innerHTML = '<div style="color: #f44336;">Введите промокод</div>';
+                return;
+            }
+            
+            if (!promoCodes[code]) {
+                elements.promoResult.innerHTML = '<div style="color: #f44336;">Неверный промокод</div>';
+                return;
+            }
+            
+            if (promoCodes[code].used) {
+                elements.promoResult.innerHTML = '<div style="color: #f44336;">Промокод уже использован</div>';
+                return;
+            }
+            
+            // Активируем промокод
+            mopsCoins += promoCodes[code].coins;
+            promoCodes[code].used = true;
+            activatedPromos.push(code);
+            
+            elements.promoCode.value = '';
+            elements.promoResult.innerHTML = `<div style="color: #4CAF50;">Промокод активирован! Получено ${promoCodes[code].coins} 🐕</div>`;
+            
+            updateDisplay();
+            updatePromoInfo();
             saveGame();
-            alert('Обмен отклонен');
         }
 
         // Обновление индекса
@@ -1158,7 +1179,7 @@
             const hourlyIncome = miningRate * 3600;
             const totalCards = ownedCards.length;
             
-            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50};
+            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50, referral: 10};
             const rarityScore = ownedCards.reduce((score, card) => score + rarityWeights[card.rarity], 0);
             
             elements.totalIndex.textContent = totalIndex.toLocaleString();
@@ -1174,7 +1195,8 @@
                 'rare': '#4CAF50', 
                 'epic': '#9C27B0',
                 'legendary': '#FF9800',
-                'mythic': '#FF0000'
+                'mythic': '#FF0000',
+                'referral': '#9C27B0'
             };
             return colors[rarity] || '#666';
         }
@@ -1185,7 +1207,8 @@
                 'rare': 'Редкая',
                 'epic': 'Эпическая', 
                 'legendary': 'Легендарная',
-                'mythic': 'Мифическая'
+                'mythic': 'Мифическая',
+                'referral': 'Реферальная'
             };
             return names[rarity] || 'Обычная';
         }
@@ -1243,6 +1266,12 @@
             loadGame();
             initTelegram();
             gameLoop();
+            
+            // Проверяем реферальную ссылку в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('start') && urlParams.get('start').startsWith('ref_')) {
+                setTimeout(activateReferralBonus, 1000);
+            }
             
             document.addEventListener('keydown', function(event) {
                 if (event.code === 'Space') {
