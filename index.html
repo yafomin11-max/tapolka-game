@@ -124,7 +124,6 @@
         .card.epic { border-color: #9C27B0; background: rgba(156,39,176,0.1); }
         .card.legendary { border-color: #FF9800; background: rgba(255,152,0,0.1); }
         .card.mythic { border-color: #FF0000; background: rgba(255,0,0,0.1); }
-        .card.referral { border-color: #9C27B0; background: rgba(156,39,176,0.2); }
         
         .card-header {
             display: flex;
@@ -161,7 +160,7 @@
             margin-left: 5px;
         }
         
-        .buy-btn, .game-btn, .trade-btn, .promo-btn {
+        .buy-btn, .game-btn, .trade-btn, .promo-btn, .ref-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -174,7 +173,7 @@
             margin-top: 5px;
         }
         
-        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover {
+        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover, .ref-btn:hover {
             background: #45a049;
         }
         
@@ -373,24 +372,13 @@
             font-size: 1em;
         }
         
-        .referral-link {
+        .ref-link {
             background: rgba(255,255,255,0.1);
             padding: 15px;
             border-radius: 10px;
             margin: 10px 0;
             word-break: break-all;
             font-size: 0.9em;
-        }
-        
-        .copy-btn {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-            width: 100%;
         }
         
         .bonus-timer {
@@ -430,9 +418,8 @@
             <div class="tab" onclick="switchTab('shop')">Магазин</div>
             <div class="tab" onclick="switchTab('cards')">Карточки</div>
             <div class="tab" onclick="switchTab('minigames')">Игры</div>
-            <div class="tab" onclick="switchTab('trade')">Обмен</div>
-            <div class="tab" onclick="switchTab('referral')">Рефералы</div>
             <div class="tab" onclick="switchTab('promo')">Промо</div>
+            <div class="tab" onclick="switchTab('referral')">Рефералы</div>
             <div class="tab" onclick="switchTab('index')">Индекс</div>
         </div>
         
@@ -476,10 +463,13 @@
             </div>
         </div>
         
-        <div id="tradeTab" class="trade tab-content">
+        <div id="promoTab" class="promo tab-content">
             <div class="minigame-area">
-                <h3>🤝 Обмен с игроком</h3>
-                <p style="opacity: 0.7; font-size: 0.9em;">Система обменов в разработке...</p>
+                <h3>🎁 Промокоды</h3>
+                <p>Введи промокод для получения награды:</p>
+                <input type="text" class="promo-input" id="promoCode" placeholder="Введите промокод">
+                <button class="promo-btn" onclick="activatePromoCode()">Активировать</button>
+                <div id="promoResult" style="margin-top: 15px;"></div>
             </div>
         </div>
         
@@ -488,39 +478,17 @@
                 <h3>👥 Реферальная программа</h3>
                 <p>Пригласи друзей и получай бонусы!</p>
                 
-                <div class="referral-link" id="referralLink">
-                    https://t.me/your_bot?start=ref_loading...
+                <div class="ref-link" id="refLink">
+                    https://t.me/your_tapolka_bot?start=ref_<span id="refCode">0000</span>
                 </div>
-                <button class="copy-btn" onclick="copyReferralLink()">📋 Скопировать ссылку</button>
+                <button class="ref-btn" onclick="copyRefLink()">📋 Скопировать ссылку</button>
                 
-                <div class="stats" style="margin-top: 15px;">
-                    <div>Приглашено друзей: <span id="referralCount">0</span></div>
-                    <div>Всего получено: <span id="referralEarnings">0</span> 🐕</div>
-                </div>
-                
-                <div class="card" style="margin-top: 15px;">
+                <div style="margin-top: 20px;">
                     <h4>🎁 Бонусы за приглашение:</h4>
-                    <div class="card-stats">
-                        • Вы получаете: <strong>500 🐕</strong><br>
-                        • Друг получает: <strong>1.5x доход на 30 минут</strong><br>
-                        • Уникальный мопс: <strong>Реферальный мопс</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="promoTab" class="promo tab-content">
-            <div class="minigame-area">
-                <h3>🎟️ Промокоды</h3>
-                <p>Введи промокод чтобы получить награду!</p>
-                
-                <input type="text" class="promo-input" id="promoCode" placeholder="Введите промокод">
-                <button class="promo-btn" onclick="activatePromoCode()">Активировать</button>
-                
-                <div id="promoResult" style="margin-top: 15px;"></div>
-                
-                <div class="stats" style="margin-top: 15px;">
-                    <div>Активировано промокодов: <span id="activatedPromos">0</span></div>
+                    <p>• Вы получаете: 500 🐕</p>
+                    <p>• Друг получает: x1.5 к заработку на 30 минут</p>
+                    <p>• Друг получает: 🎁 Реферального мопса</p>
+                    <p>• Приглашено друзей: <span id="refCount">0</span></p>
                 </div>
             </div>
         </div>
@@ -569,34 +537,14 @@
         let shopRefreshTime = Date.now() + 30 * 60 * 1000;
         let selectedCardForGame = null;
         let isRouletteSpinning = false;
-        let referralCount = 0;
-        let referralEarnings = 0;
-        let activatedPromos = [];
-        let bonusMultiplier = 1;
-        let bonusEndTime = 0;
+        let usedPromoCodes = [];
+        let referralCode = '';
+        let referredUsers = [];
+        let referralBonusActive = false;
+        let referralBonusEndTime = 0;
+        let tapMultiplier = 1;
 
-        // Уникальный реферальный мопс
-        const referralMops = {
-            id: 999,
-            name: "Реферальный мопс",
-            emoji: "🤝🐕",
-            rarity: "referral",
-            price: 0,
-            mining: 2,
-            chance: 0,
-            index: 100,
-            winChance: 50,
-            uniqueId: "REF_MOPS_001"
-        };
-
-        // Промокоды
-        const promoCodes = {
-            "mops": { coins: 5000, used: false },
-            "mandarin": { coins: 5000, used: false },
-            "kolbasa": { coins: 5000, used: false }
-        };
-
-        // Упрощенные карточки для демонстрации
+        // Карточки для игры
         const cardTypes = [
             { 
                 id: 1, 
@@ -605,9 +553,8 @@
                 rarity: "common", 
                 price: 10, 
                 mining: 0.01, 
-                chance: 15, 
-                index: 1,
-                winChance: 50 // Фиксированный шанс 50%
+                shopChance: 15, 
+                index: 1
             },
             { 
                 id: 2, 
@@ -616,9 +563,8 @@
                 rarity: "common", 
                 price: 50, 
                 mining: 0.1, 
-                chance: 10, 
-                index: 5,
-                winChance: 50
+                shopChance: 10, 
+                index: 5
             },
             { 
                 id: 3, 
@@ -627,9 +573,8 @@
                 rarity: "rare", 
                 price: 200, 
                 mining: 0.5, 
-                chance: 5, 
-                index: 15,
-                winChance: 50
+                shopChance: 5, 
+                index: 15
             },
             { 
                 id: 4, 
@@ -638,9 +583,8 @@
                 rarity: "epic", 
                 price: 1500, 
                 mining: 5, 
-                chance: 3, 
-                index: 80,
-                winChance: 50
+                shopChance: 3, 
+                index: 80
             },
             { 
                 id: 5, 
@@ -649,11 +593,27 @@
                 rarity: "legendary", 
                 price: 10000, 
                 mining: 50, 
-                chance: 2, 
-                index: 500,
-                winChance: 50
+                shopChance: 2, 
+                index: 500
+            },
+            {
+                id: 6,
+                name: "Реферальный мопс",
+                emoji: "🎁🐕",
+                rarity: "rare",
+                price: 0,
+                mining: 2,
+                shopChance: 0,
+                index: 25
             }
         ];
+
+        // Промокоды
+        const promoCodes = {
+            'mops': { coins: 5000, used: false },
+            'mandarin': { coins: 5000, used: false },
+            'kolbasa': { coins: 5000, used: false }
+        };
 
         // Элементы DOM
         const elements = {
@@ -675,12 +635,11 @@
             rouletteContainer: document.getElementById('rouletteContainer'),
             rouletteWheel: document.getElementById('rouletteWheel'),
             rouletteResult: document.getElementById('rouletteResult'),
-            referralLink: document.getElementById('referralLink'),
-            referralCount: document.getElementById('referralCount'),
-            referralEarnings: document.getElementById('referralEarnings'),
             promoCode: document.getElementById('promoCode'),
             promoResult: document.getElementById('promoResult'),
-            activatedPromos: document.getElementById('activatedPromos'),
+            refLink: document.getElementById('refLink'),
+            refCode: document.getElementById('refCode'),
+            refCount: document.getElementById('refCount'),
             bonusTimer: document.getElementById('bonusTimer')
         };
 
@@ -689,10 +648,9 @@
             return 'MC' + Date.now() + '_' + (globalCardIdCounter++);
         }
 
-        // Генерация реферальной ссылки
-        function generateReferralLink() {
-            const userId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-            return `https://t.me/your_bot?start=ref_${userId}`;
+        // Генератор реферального кода
+        function generateReferralCode() {
+            return Math.random().toString(36).substring(2, 6).toUpperCase();
         }
 
         // Загрузка игры
@@ -707,16 +665,16 @@
                     miningRate = gameData.miningRate || 0;
                     shopItems = gameData.shopItems || [];
                     shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
+                    usedPromoCodes = gameData.usedPromoCodes || [];
+                    referralCode = gameData.referralCode || generateReferralCode();
+                    referredUsers = gameData.referredUsers || [];
+                    referralBonusActive = gameData.referralBonusActive || false;
+                    referralBonusEndTime = gameData.referralBonusEndTime || 0;
                     globalCardIdCounter = gameData.globalCardIdCounter || 1000;
-                    referralCount = gameData.referralCount || 0;
-                    referralEarnings = gameData.referralEarnings || 0;
-                    activatedPromos = gameData.activatedPromos || [];
-                    bonusMultiplier = gameData.bonusMultiplier || 1;
-                    bonusEndTime = gameData.bonusEndTime || 0;
                     
-                    // Загружаем состояние промокодов
+                    // Восстанавливаем состояние промокодов
                     Object.keys(promoCodes).forEach(code => {
-                        if (activatedPromos.includes(code)) {
+                        if (usedPromoCodes.includes(code)) {
                             promoCodes[code].used = true;
                         }
                     });
@@ -725,12 +683,15 @@
                         generateShopItems();
                     }
                 } else {
+                    referralCode = generateReferralCode();
                     generateShopItems();
                 }
             } catch (e) {
                 console.log('Ошибка загрузки:', e);
+                referralCode = generateReferralCode();
                 generateShopItems();
             }
+            
             updateMiningRate();
             updateDisplay();
             updateShop();
@@ -738,7 +699,7 @@
             updateIndex();
             updateGameCards();
             updateReferralInfo();
-            updatePromoInfo();
+            checkReferralBonus();
         }
 
         // Сохранение игры
@@ -751,12 +712,12 @@
                     miningRate: miningRate,
                     shopItems: shopItems,
                     shopRefreshTime: shopRefreshTime,
+                    usedPromoCodes: usedPromoCodes,
+                    referralCode: referralCode,
+                    referredUsers: referredUsers,
+                    referralBonusActive: referralBonusActive,
+                    referralBonusEndTime: referralBonusEndTime,
                     globalCardIdCounter: globalCardIdCounter,
-                    referralCount: referralCount,
-                    referralEarnings: referralEarnings,
-                    activatedPromos: activatedPromos,
-                    bonusMultiplier: bonusMultiplier,
-                    bonusEndTime: bonusEndTime,
                     timestamp: Date.now()
                 };
                 localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
@@ -765,13 +726,12 @@
             }
         }
 
-        // Тап по мопсу с учетом бонуса
+        // Тап по мопсу с учетом множителя
         function tapMops() {
-            const coinsEarned = 1 * bonusMultiplier;
-            mopsCoins += coinsEarned;
+            mopsCoins += tapMultiplier;
             totalTaps++;
             
-            createFloatingMops(coinsEarned);
+            createFloatingMops();
             updateDisplay();
             
             elements.mops.classList.add('mops-animation');
@@ -787,10 +747,10 @@
         }
 
         // Создание летящего мопса
-        function createFloatingMops(amount) {
+        function createFloatingMops() {
             const floatingMops = document.createElement('div');
             floatingMops.className = 'floating-mops';
-            floatingMops.textContent = `+${amount} 🐕`;
+            floatingMops.textContent = `+${tapMultiplier} 🐕`;
             floatingMops.style.left = Math.random() * 200 + 100 + 'px';
             floatingMops.style.top = '250px';
             
@@ -808,7 +768,7 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             
-            const tabs = ['tap', 'shop', 'cards', 'minigames', 'trade', 'referral', 'promo', 'index'];
+            const tabs = ['tap', 'shop', 'cards', 'minigames', 'promo', 'referral', 'index'];
             const tabIndex = tabs.indexOf(tabName) + 1;
             document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
             document.getElementById(tabName + 'Tab').style.display = 'block';
@@ -823,17 +783,17 @@
         // Генерация предметов магазина
         function generateShopItems() {
             shopItems = [];
-            const availableCards = [...cardTypes];
+            const availableCards = cardTypes.filter(card => card.shopChance > 0);
             
             for (let i = 0; i < 3; i++) {
                 if (availableCards.length === 0) break;
                 
-                const totalChance = availableCards.reduce((sum, card) => sum + card.chance, 0);
+                const totalChance = availableCards.reduce((sum, card) => sum + card.shopChance, 0);
                 let random = Math.random() * totalChance;
                 let selectedCard = null;
                 
                 for (const card of availableCards) {
-                    random -= card.chance;
+                    random -= card.shopChance;
                     if (random <= 0) {
                         selectedCard = card;
                         break;
@@ -852,16 +812,11 @@
 
         // Функция покупки карточки
         function buyCard(cardId) {
-            console.log('Покупка карточки ID:', cardId);
             const card = shopItems.find(c => c.id === cardId);
-            if (!card) {
-                console.log('Карточка не найдена в магазине');
-                return;
-            }
+            if (!card) return;
             
             if (mopsCoins >= card.price) {
                 mopsCoins -= card.price;
-                // Создаем новую карточку с уникальным ID
                 const newCard = {
                     ...card,
                     uniqueId: generateUniqueCardId()
@@ -876,35 +831,19 @@
                 updateIndex();
                 updateGameCards();
                 saveGame();
-                
-                console.log('Карточка успешно куплена! ID:', newCard.uniqueId);
-            } else {
-                console.log('Недостаточно средств для покупки');
             }
         }
 
-        // Обновление скорости майнинга с учетом бонуса
+        // Обновление скорости майнинга
         function updateMiningRate() {
-            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0) * bonusMultiplier;
-            if (bonusMultiplier > 1) {
-                elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек (x${bonusMultiplier} бонус!)`;
-            } else {
-                elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
-            }
+            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0);
+            elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
         }
 
         // Майнинг в фоне
         function processMining() {
             const now = Date.now();
             const timePassed = (now - lastMiningTime) / 1000;
-            
-            // Проверяем бонусное время
-            if (bonusEndTime > 0 && now >= bonusEndTime) {
-                bonusMultiplier = 1;
-                bonusEndTime = 0;
-                updateMiningRate();
-                elements.bonusTimer.style.display = 'none';
-            }
             
             if (timePassed > 0) {
                 const minedCoins = miningRate * timePassed;
@@ -914,18 +853,9 @@
                 updateIndex();
                 saveGame();
             }
-            
-            // Обновляем таймер бонуса
-            if (bonusEndTime > 0) {
-                const timeLeft = Math.max(0, bonusEndTime - now);
-                const minutes = Math.floor(timeLeft / 60000);
-                const seconds = Math.floor((timeLeft % 60000) / 1000);
-                elements.bonusTimer.textContent = `Бонус x1.5: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                elements.bonusTimer.style.display = 'block';
-            }
         }
 
-        // Обновление магазина
+        // Обновление магазина с отображением шансов появления
         function updateShop() {
             if (Date.now() >= shopRefreshTime) {
                 generateShopItems();
@@ -945,13 +875,13 @@
                         <div class="card-name">${card.emoji} ${card.name}</div>
                         <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">
                             ${getRarityName(card.rarity)}
-                            <span class="chance-badge">${card.winChance}% шанс</span>
+                            <span class="chance-badge">${card.shopChance}% в магазине</span>
                         </div>
                     </div>
                     <div class="card-stats">
                         💰 Майнинг: ${card.mining} мопс/сек<br>
                         📊 Индекс: +${card.index}<br>
-                        🎰 Шанс в рулетке: ${card.winChance}%<br>
+                        🎰 Шанс в рулетке: 50%<br>
                         🏷️ Цена: ${card.price.toLocaleString()} 🐕
                     </div>
                     <button class="buy-btn" onclick="buyCard(${card.id})" ${mopsCoins < card.price ? 'disabled' : ''}>
@@ -966,7 +896,7 @@
             }
         }
 
-        // Обновление карточек
+        // Обновление карточек с уникальными ID
         function updateCards() {
             elements.ownedCards.innerHTML = '';
             
@@ -979,11 +909,11 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity}`;
                 cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId ? card.uniqueId.substring(2, 8) : 'NEW'}</div>
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                    <div style="font-size: 0.7em; margin-top: 5px; color: #FFD700;">${card.winChance}% шанс</div>
+                    <div style="font-size: 0.7em; margin-top: 5px; color: #FFD700;">${card.shopChance || 0}% в магазине</div>
                     <div style="font-size: 0.6em; opacity: 0.6;">Индекс: ${card.index}</div>
                 `;
                 elements.ownedCards.appendChild(cardElement);
@@ -1004,11 +934,11 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `owned-card ${card.rarity} ${selectedCardForGame === index ? 'selected' : ''}`;
                 cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId ? card.uniqueId.substring(2, 8) : 'NEW'}</div>
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                    <div style="font-size: 0.7em; color: #FFD700;">${card.winChance}% шанс</div>
+                    <div style="font-size: 0.7em; color: #FFD700;">50% шанс в рулетке</div>
                 `;
                 cardElement.onclick = () => selectCardForGame(index);
                 elements.gameCards.appendChild(cardElement);
@@ -1017,25 +947,13 @@
             elements.startRouletteBtn.disabled = selectedCardForGame === null;
         }
 
-        // Обновление реферальной информации
-        function updateReferralInfo() {
-            elements.referralLink.textContent = generateReferralLink();
-            elements.referralCount.textContent = referralCount;
-            elements.referralEarnings.textContent = referralEarnings;
-        }
-
-        // Обновление информации о промокодах
-        function updatePromoInfo() {
-            elements.activatedPromos.textContent = activatedPromos.length;
-        }
-
         // Выбор карточки для игры
         function selectCardForGame(index) {
             selectedCardForGame = index;
             updateGameCards();
         }
 
-        // Мини-игра: Рулетка с фиксированным шансом 50%
+        // Мини-игра: Рулетка с фиксированным 50% шансом
         function startRoulette() {
             if (selectedCardForGame === null || isRouletteSpinning) return;
             
@@ -1053,12 +971,12 @@
                 elements.rouletteWheel.classList.remove('roulette-spinning');
                 isRouletteSpinning = false;
                 
-                // Фиксированный шанс 50%
+                // Фиксированный 50% шанс
                 const isWin = Math.random() < 0.5;
                 
                 if (isWin) {
                     // Улучшение карточки при выигрыше
-                    const improvement = 1.2 + Math.random() * 0.3; // Улучшение на 120-150%
+                    const improvement = 1.2 + Math.random() * 0.3;
                     selectedCard.mining *= improvement;
                     selectedCard.index = Math.floor(selectedCard.index * improvement);
                     
@@ -1100,47 +1018,6 @@
             }, 2000);
         }
 
-        // Копирование реферальной ссылки
-        function copyReferralLink() {
-            const link = elements.referralLink.textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('Ссылка скопирована в буфер обмена!');
-            }).catch(() => {
-                // Fallback для старых браузеров
-                const textArea = document.createElement('textarea');
-                textArea.value = link;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('Ссылка скопирована в буфер обмена!');
-            });
-        }
-
-        // Активация реферального бонуса
-        function activateReferralBonus() {
-            mopsCoins += 500;
-            referralEarnings += 500;
-            bonusMultiplier = 1.5;
-            bonusEndTime = Date.now() + 30 * 60 * 1000; // 30 минут
-            
-            // Добавляем реферального мопса
-            if (!ownedCards.some(card => card.id === referralMops.id)) {
-                ownedCards.push({
-                    ...referralMops,
-                    uniqueId: generateUniqueCardId()
-                });
-            }
-            
-            updateMiningRate();
-            updateDisplay();
-            updateCards();
-            updateReferralInfo();
-            saveGame();
-            
-            alert('Реферальный бонус активирован! Вы получили 500 🐕, x1.5 бонус на 30 минут и Реферального мопса!');
-        }
-
         // Активация промокода
         function activatePromoCode() {
             const code = elements.promoCode.value.trim().toLowerCase();
@@ -1163,14 +1040,73 @@
             // Активируем промокод
             mopsCoins += promoCodes[code].coins;
             promoCodes[code].used = true;
-            activatedPromos.push(code);
+            usedPromoCodes.push(code);
+            
+            elements.promoResult.innerHTML = `
+                <div style="color: #4CAF50;">
+                    🎉 Промокод активирован!<br>
+                    Получено: ${promoCodes[code].coins} 🐕
+                </div>
+            `;
             
             elements.promoCode.value = '';
-            elements.promoResult.innerHTML = `<div style="color: #4CAF50;">Промокод активирован! Получено ${promoCodes[code].coins} 🐕</div>`;
-            
             updateDisplay();
-            updatePromoInfo();
             saveGame();
+        }
+
+        // Обновление реферальной информации
+        function updateReferralInfo() {
+            elements.refCode.textContent = referralCode;
+            elements.refCount.textContent = referredUsers.length;
+            
+            // Обновляем ссылку с правильным username бота
+            elements.refLink.innerHTML = `https://t.me/<strong>your_tapolka_bot</strong>?start=ref_${referralCode}`;
+        }
+
+        // Копирование реферальной ссылки
+        function copyRefLink() {
+            const link = `https://t.me/your_tapolka_bot?start=ref_${referralCode}`;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Реферальная ссылка скопирована!');
+            });
+        }
+
+        // Активация реферального бонуса
+        function activateReferralBonus() {
+            referralBonusActive = true;
+            referralBonusEndTime = Date.now() + 30 * 60 * 1000; // 30 минут
+            tapMultiplier = 1.5;
+            
+            // Добавляем реферального мопса
+            const refMops = {
+                ...cardTypes[5],
+                uniqueId: generateUniqueCardId()
+            };
+            ownedCards.push(refMops);
+            
+            updateMiningRate();
+            updateDisplay();
+            updateCards();
+            updateGameCards();
+            updateIndex();
+            saveGame();
+        }
+
+        // Проверка реферального бонуса
+        function checkReferralBonus() {
+            if (referralBonusActive && Date.now() < referralBonusEndTime) {
+                const timeLeft = referralBonusEndTime - Date.now();
+                const minutes = Math.floor(timeLeft / 60000);
+                const seconds = Math.floor((timeLeft % 60000) / 1000);
+                elements.bonusTimer.style.display = 'block';
+                elements.bonusTimer.textContent = `🎁 x1.5 бонус: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            } else if (referralBonusActive) {
+                // Бонус закончился
+                referralBonusActive = false;
+                tapMultiplier = 1;
+                elements.bonusTimer.style.display = 'none';
+                saveGame();
+            }
         }
 
         // Обновление индекса
@@ -1179,7 +1115,7 @@
             const hourlyIncome = miningRate * 3600;
             const totalCards = ownedCards.length;
             
-            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50, referral: 10};
+            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50};
             const rarityScore = ownedCards.reduce((score, card) => score + rarityWeights[card.rarity], 0);
             
             elements.totalIndex.textContent = totalIndex.toLocaleString();
@@ -1195,8 +1131,7 @@
                 'rare': '#4CAF50', 
                 'epic': '#9C27B0',
                 'legendary': '#FF9800',
-                'mythic': '#FF0000',
-                'referral': '#9C27B0'
+                'mythic': '#FF0000'
             };
             return colors[rarity] || '#666';
         }
@@ -1207,8 +1142,7 @@
                 'rare': 'Редкая',
                 'epic': 'Эпическая', 
                 'legendary': 'Легендарная',
-                'mythic': 'Мифическая',
-                'referral': 'Реферальная'
+                'mythic': 'Мифическая'
             };
             return names[rarity] || 'Обычная';
         }
@@ -1258,6 +1192,7 @@
         function gameLoop() {
             processMining();
             updateShop();
+            checkReferralBonus();
             requestAnimationFrame(gameLoop);
         }
 
@@ -1266,12 +1201,6 @@
             loadGame();
             initTelegram();
             gameLoop();
-            
-            // Проверяем реферальную ссылку в URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('start') && urlParams.get('start').startsWith('ref_')) {
-                setTimeout(activateReferralBonus, 1000);
-            }
             
             document.addEventListener('keydown', function(event) {
                 if (event.code === 'Space') {
