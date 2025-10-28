@@ -124,6 +124,7 @@
         .card.epic { border-color: #9C27B0; background: rgba(156,39,176,0.1); }
         .card.legendary { border-color: #FF9800; background: rgba(255,152,0,0.1); }
         .card.mythic { border-color: #FF0000; background: rgba(255,0,0,0.1); }
+        .card.unique { border-color: #FF00FF; background: rgba(255,0,255,0.1); }
         
         .card-header {
             display: flex;
@@ -160,7 +161,7 @@
             margin-left: 5px;
         }
         
-        .buy-btn, .game-btn, .trade-btn, .promo-btn, .ref-btn {
+        .buy-btn, .game-btn, .trade-btn, .promo-btn, .ref-btn, .exchange-btn {
             background: #4CAF50;
             color: white;
             border: none;
@@ -173,7 +174,7 @@
             margin-top: 5px;
         }
         
-        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover, .ref-btn:hover {
+        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover, .ref-btn:hover, .exchange-btn:hover {
             background: #45a049;
         }
         
@@ -361,7 +362,7 @@
         .win { color: #4CAF50; }
         .lose { color: #f44336; }
         
-        .trade-input, .promo-input {
+        .trade-input, .promo-input, .exchange-input {
             width: 100%;
             padding: 10px;
             border-radius: 10px;
@@ -385,6 +386,19 @@
             color: #FFD700;
             font-weight: bold;
             margin: 5px 0;
+        }
+        
+        .exchange-offer {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .exchange-list {
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -418,6 +432,7 @@
             <div class="tab" onclick="switchTab('shop')">Магазин</div>
             <div class="tab" onclick="switchTab('cards')">Карточки</div>
             <div class="tab" onclick="switchTab('minigames')">Игры</div>
+            <div class="tab" onclick="switchTab('exchange')">Обмен</div>
             <div class="tab" onclick="switchTab('promo')">Промо</div>
             <div class="tab" onclick="switchTab('referral')">Рефералы</div>
             <div class="tab" onclick="switchTab('index')">Индекс</div>
@@ -460,6 +475,26 @@
                 </div>
                 
                 <button class="game-btn" onclick="startRoulette()" id="startRouletteBtn" disabled>Крутить рулетку</button>
+            </div>
+        </div>
+        
+        <div id="exchangeTab" class="trade tab-content">
+            <div class="minigame-area">
+                <h3>🤝 Обмен карточками</h3>
+                <p>Выбери карточку для обмена и установи цену:</p>
+                
+                <div class="card-grid" id="exchangeCards"></div>
+                
+                <div id="exchangeForm" style="display: none;">
+                    <h4>Обмен: <span id="selectedCardName"></span></h4>
+                    <input type="number" class="exchange-input" id="exchangePrice" placeholder="Цена в мопс-коинах" min="1">
+                    <button class="exchange-btn" onclick="createExchangeOffer()">Создать предложение</button>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4>📋 Активные предложения:</h4>
+                    <div class="exchange-list" id="exchangeOffers"></div>
+                </div>
             </div>
         </div>
         
@@ -526,6 +561,7 @@
     <script>
         // Глобальный счетчик для уникальных ID
         let globalCardIdCounter = 1000;
+        let globalExchangeIdCounter = 1;
 
         // Данные игры
         let mopsCoins = 100;
@@ -536,6 +572,7 @@
         let shopItems = [];
         let shopRefreshTime = Date.now() + 30 * 60 * 1000;
         let selectedCardForGame = null;
+        let selectedCardForExchange = null;
         let isRouletteSpinning = false;
         let usedPromoCodes = [];
         let referralCode = '';
@@ -543,76 +580,62 @@
         let referralBonusActive = false;
         let referralBonusEndTime = 0;
         let tapMultiplier = 1;
+        let exchangeOffers = [];
 
-        // Карточки для игры
+        // МНОГО новых карточек для игры
         const cardTypes = [
-            { 
-                id: 1, 
-                name: "Мопс шахтер", 
-                emoji: "⛏️🐕", 
-                rarity: "common", 
-                price: 10, 
-                mining: 0.01, 
-                shopChance: 15, 
-                index: 1
-            },
-            { 
-                id: 2, 
-                name: "Взрослый мопс", 
-                emoji: "🐕", 
-                rarity: "common", 
-                price: 50, 
-                mining: 0.1, 
-                shopChance: 10, 
-                index: 5
-            },
-            { 
-                id: 3, 
-                name: "Мопс в очках", 
-                emoji: "🤓🐕", 
-                rarity: "rare", 
-                price: 200, 
-                mining: 0.5, 
-                shopChance: 5, 
-                index: 15
-            },
-            { 
-                id: 4, 
-                name: "Золотой мопс", 
-                emoji: "⭐🐕", 
-                rarity: "epic", 
-                price: 1500, 
-                mining: 5, 
-                shopChance: 3, 
-                index: 80
-            },
-            { 
-                id: 5, 
-                name: "Легендарный мопс", 
-                emoji: "💫🐕", 
-                rarity: "legendary", 
-                price: 10000, 
-                mining: 50, 
-                shopChance: 2, 
-                index: 500
-            },
-            {
-                id: 6,
-                name: "Реферальный мопс",
-                emoji: "🎁🐕",
-                rarity: "rare",
-                price: 0,
-                mining: 2,
-                shopChance: 0,
-                index: 25
-            }
+            // Обычные карточки
+            { id: 1, name: "Мопс шахтер", emoji: "⛏️🐕", rarity: "common", price: 10, mining: 0.01, shopChance: 15, index: 1 },
+            { id: 2, name: "Взрослый мопс", emoji: "🐕", rarity: "common", price: 50, mining: 0.1, shopChance: 10, index: 5 },
+            { id: 3, name: "Щенок мопса", emoji: "🐶", rarity: "common", price: 25, mining: 0.05, shopChance: 12, index: 3 },
+            { id: 4, name: "Спящий мопс", emoji: "😴🐕", rarity: "common", price: 30, mining: 0.08, shopChance: 11, index: 4 },
+            { id: 5, name: "Голодный мопс", emoji: "🍖🐕", rarity: "common", price: 40, mining: 0.12, shopChance: 9, index: 6 },
+            
+            // Редкие карточки
+            { id: 6, name: "Мопс в очках", emoji: "🤓🐕", rarity: "rare", price: 200, mining: 0.5, shopChance: 5, index: 15 },
+            { id: 7, name: "Мопс-повар", emoji: "👨‍🍳🐕", rarity: "rare", price: 300, mining: 0.8, shopChance: 4, index: 20 },
+            { id: 8, name: "Мопс-спортсмен", emoji: "🏃🐕", rarity: "rare", price: 250, mining: 0.6, shopChance: 5, index: 18 },
+            { id: 9, name: "Мопс-музыкант", emoji: "🎵🐕", rarity: "rare", price: 280, mining: 0.7, shopChance: 4, index: 22 },
+            { id: 10, name: "Мопс-детектив", emoji: "🕵️🐕", rarity: "rare", price: 320, mining: 0.9, shopChance: 3, index: 25 },
+            
+            // Эпические карточки
+            { id: 11, name: "Золотой мопс", emoji: "⭐🐕", rarity: "epic", price: 1500, mining: 5, shopChance: 3, index: 80 },
+            { id: 12, name: "Космический мопс", emoji: "🚀🐕", rarity: "epic", price: 2000, mining: 8, shopChance: 2, index: 100 },
+            { id: 13, name: "Магический мопс", emoji: "🔮🐕", rarity: "epic", price: 1800, mining: 6, shopChance: 2, index: 90 },
+            { id: 14, name: "Кибер-мопс", emoji: "🤖🐕", rarity: "epic", price: 2200, mining: 9, shopChance: 2, index: 110 },
+            { id: 15, name: "Королевский мопс", emoji: "👑🐕", rarity: "epic", price: 2500, mining: 10, shopChance: 1, index: 120 },
+            
+            // Легендарные карточки
+            { id: 16, name: "Легендарный мопс", emoji: "💫🐕", rarity: "legendary", price: 10000, mining: 50, shopChance: 2, index: 500 },
+            { id: 17, name: "Драконий мопс", emoji: "🐲🐕", rarity: "legendary", price: 15000, mining: 80, shopChance: 1, index: 700 },
+            { id: 18, name: "Ангельский мопс", emoji: "😇🐕", rarity: "legendary", price: 12000, mining: 60, shopChance: 1, index: 600 },
+            { id: 19, name: "Демонический мопс", emoji: "😈🐕", rarity: "legendary", price: 13000, mining: 70, shopChance: 1, index: 650 },
+            { id: 20, name: "Водяной мопс", emoji: "🌊🐕", rarity: "legendary", price: 11000, mining: 55, shopChance: 1, index: 550 },
+            
+            // Мифические карточки
+            { id: 21, name: "Феникс-мопс", emoji: "🔥🐕", rarity: "mythic", price: 50000, mining: 200, shopChance: 0.5, index: 2000 },
+            { id: 22, name: "Единорог-мопс", emoji: "🦄🐕", rarity: "mythic", price: 60000, mining: 250, shopChance: 0.5, index: 2500 },
+            { id: 23, name: "Ктулху-мопс", emoji: "🐙🐕", rarity: "mythic", price: 70000, mining: 300, shopChance: 0.3, index: 3000 },
+            { id: 24, name: "Галактический мопс", emoji: "🌌🐕", rarity: "mythic", price: 80000, mining: 350, shopChance: 0.2, index: 3500 },
+            
+            // Уникальные карточки
+            { id: 25, name: "Бог мопсов", emoji: "🙏🐕", rarity: "unique", price: 100000, mining: 500, shopChance: 0.1, index: 5000 },
+            { id: 26, name: "Создатель мопсов", emoji: "⚡🐕", rarity: "unique", price: 150000, mining: 800, shopChance: 0.05, index: 8000 },
+            
+            // Реферальные и специальные
+            { id: 27, name: "Реферальный мопс", emoji: "🎁🐕", rarity: "rare", price: 0, mining: 2, shopChance: 0, index: 25 },
+            { id: 28, name: "Праздничный мопс", emoji: "🎄🐕", rarity: "epic", price: 5000, mining: 15, shopChance: 1, index: 150 },
+            { id: 29, name: "Хэллоуин мопс", emoji: "🎃🐕", rarity: "epic", price: 4500, mining: 12, shopChance: 1, index: 130 },
+            { id: 30, name: "Новогодний мопс", emoji: "🎉🐕", rarity: "legendary", price: 20000, mining: 100, shopChance: 0.5, index: 1000 }
         ];
 
         // Промокоды
         const promoCodes = {
             'mops': { coins: 5000, used: false },
             'mandarin': { coins: 5000, used: false },
-            'kolbasa': { coins: 5000, used: false }
+            'kolbasa': { coins: 5000, used: false },
+            'tapolka': { coins: 10000, used: false },
+            'mopslove': { coins: 7500, used: false }
         };
 
         // Элементы DOM
@@ -640,7 +663,12 @@
             refLink: document.getElementById('refLink'),
             refCode: document.getElementById('refCode'),
             refCount: document.getElementById('refCount'),
-            bonusTimer: document.getElementById('bonusTimer')
+            bonusTimer: document.getElementById('bonusTimer'),
+            exchangeCards: document.getElementById('exchangeCards'),
+            exchangeForm: document.getElementById('exchangeForm'),
+            selectedCardName: document.getElementById('selectedCardName'),
+            exchangePrice: document.getElementById('exchangePrice'),
+            exchangeOffers: document.getElementById('exchangeOffers')
         };
 
         // Генератор уникального ID карточки
@@ -671,6 +699,8 @@
                     referralBonusActive = gameData.referralBonusActive || false;
                     referralBonusEndTime = gameData.referralBonusEndTime || 0;
                     globalCardIdCounter = gameData.globalCardIdCounter || 1000;
+                    exchangeOffers = gameData.exchangeOffers || [];
+                    globalExchangeIdCounter = gameData.globalExchangeIdCounter || 1;
                     
                     // Восстанавливаем состояние промокодов
                     Object.keys(promoCodes).forEach(code => {
@@ -699,6 +729,7 @@
             updateIndex();
             updateGameCards();
             updateReferralInfo();
+            updateExchangeOffers();
             checkReferralBonus();
         }
 
@@ -718,6 +749,8 @@
                     referralBonusActive: referralBonusActive,
                     referralBonusEndTime: referralBonusEndTime,
                     globalCardIdCounter: globalCardIdCounter,
+                    exchangeOffers: exchangeOffers,
+                    globalExchangeIdCounter: globalExchangeIdCounter,
                     timestamp: Date.now()
                 };
                 localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
@@ -768,13 +801,16 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             
-            const tabs = ['tap', 'shop', 'cards', 'minigames', 'promo', 'referral', 'index'];
+            const tabs = ['tap', 'shop', 'cards', 'minigames', 'exchange', 'promo', 'referral', 'index'];
             const tabIndex = tabs.indexOf(tabName) + 1;
             document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
             document.getElementById(tabName + 'Tab').style.display = 'block';
             
             if (tabName === 'minigames') {
                 updateGameCards();
+            } else if (tabName === 'exchange') {
+                updateExchangeCards();
+                updateExchangeOffers();
             } else if (tabName === 'referral') {
                 updateReferralInfo();
             }
@@ -785,7 +821,7 @@
             shopItems = [];
             const availableCards = cardTypes.filter(card => card.shopChance > 0);
             
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 4; i++) {
                 if (availableCards.length === 0) break;
                 
                 const totalChance = availableCards.reduce((sum, card) => sum + card.shopChance, 0);
@@ -953,6 +989,129 @@
             updateGameCards();
         }
 
+        // Обновление карточек для обмена
+        function updateExchangeCards() {
+            elements.exchangeCards.innerHTML = '';
+            
+            if (ownedCards.length === 0) {
+                elements.exchangeCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек для обмена</div>';
+                elements.exchangeForm.style.display = 'none';
+                return;
+            }
+            
+            ownedCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `owned-card ${card.rarity} ${selectedCardForExchange === index ? 'selected' : ''}`;
+                cardElement.innerHTML = `
+                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
+                    <div style="font-size: 2em;">${card.emoji}</div>
+                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
+                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
+                    <div style="font-size: 0.7em; color: #FFD700;">${getRarityName(card.rarity)}</div>
+                `;
+                cardElement.onclick = () => selectCardForExchange(index);
+                elements.exchangeCards.appendChild(cardElement);
+            });
+        }
+
+        // Выбор карточки для обмена
+        function selectCardForExchange(index) {
+            selectedCardForExchange = index;
+            updateExchangeCards();
+            const card = ownedCards[index];
+            elements.selectedCardName.textContent = card.name;
+            elements.exchangeForm.style.display = 'block';
+        }
+
+        // Создание предложения обмена
+        function createExchangeOffer() {
+            if (selectedCardForExchange === null) return;
+            
+            const price = parseInt(elements.exchangePrice.value);
+            if (!price || price < 1) {
+                alert('Введите корректную цену!');
+                return;
+            }
+            
+            const card = ownedCards[selectedCardForExchange];
+            const offer = {
+                id: globalExchangeIdCounter++,
+                card: card,
+                price: price,
+                timestamp: Date.now()
+            };
+            
+            exchangeOffers.push(offer);
+            elements.exchangePrice.value = '';
+            elements.exchangeForm.style.display = 'none';
+            selectedCardForExchange = null;
+            updateExchangeCards();
+            updateExchangeOffers();
+            saveGame();
+            
+            alert(`Предложение создано! ${card.name} за ${price} 🐕`);
+        }
+
+        // Обновление списка предложений обмена
+        function updateExchangeOffers() {
+            elements.exchangeOffers.innerHTML = '';
+            
+            if (exchangeOffers.length === 0) {
+                elements.exchangeOffers.innerHTML = '<div style="text-align: center; opacity: 0.7;">Нет активных предложений</div>';
+                return;
+            }
+            
+            exchangeOffers.forEach((offer, index) => {
+                const offerElement = document.createElement('div');
+                offerElement.className = 'exchange-offer';
+                offerElement.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 1.5em;">${offer.card.emoji}</div>
+                            <div><strong>${offer.card.name}</strong></div>
+                            <div style="font-size: 0.8em; opacity: 0.8;">+${offer.card.mining}/сек • ${getRarityName(offer.card.rarity)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.2em; color: #FFD700;">${offer.price} 🐕</div>
+                            <button class="exchange-btn" onclick="buyExchangeOffer(${index})">Купить</button>
+                        </div>
+                    </div>
+                `;
+                elements.exchangeOffers.appendChild(offerElement);
+            });
+        }
+
+        // Покупка предложения обмена
+        function buyExchangeOffer(offerIndex) {
+            const offer = exchangeOffers[offerIndex];
+            
+            if (mopsCoins >= offer.price) {
+                mopsCoins -= offer.price;
+                
+                // Добавляем карточку в инвентарь
+                const newCard = {
+                    ...offer.card,
+                    uniqueId: generateUniqueCardId()
+                };
+                ownedCards.push(newCard);
+                
+                // Удаляем предложение
+                exchangeOffers.splice(offerIndex, 1);
+                
+                updateMiningRate();
+                updateDisplay();
+                updateCards();
+                updateIndex();
+                updateGameCards();
+                updateExchangeOffers();
+                saveGame();
+                
+                alert(`Вы купили ${newCard.name} за ${offer.price} 🐕!`);
+            } else {
+                alert('Недостаточно мопс-коинов!');
+            }
+        }
+
         // Мини-игра: Рулетка с фиксированным 50% шансом
         function startRoulette() {
             if (selectedCardForGame === null || isRouletteSpinning) return;
@@ -1079,7 +1238,7 @@
             
             // Добавляем реферального мопса
             const refMops = {
-                ...cardTypes[5],
+                ...cardTypes.find(c => c.id === 27),
                 uniqueId: generateUniqueCardId()
             };
             ownedCards.push(refMops);
@@ -1115,7 +1274,7 @@
             const hourlyIncome = miningRate * 3600;
             const totalCards = ownedCards.length;
             
-            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50};
+            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50, unique: 100};
             const rarityScore = ownedCards.reduce((score, card) => score + rarityWeights[card.rarity], 0);
             
             elements.totalIndex.textContent = totalIndex.toLocaleString();
@@ -1131,7 +1290,8 @@
                 'rare': '#4CAF50', 
                 'epic': '#9C27B0',
                 'legendary': '#FF9800',
-                'mythic': '#FF0000'
+                'mythic': '#FF0000',
+                'unique': '#FF00FF'
             };
             return colors[rarity] || '#666';
         }
@@ -1142,7 +1302,8 @@
                 'rare': 'Редкая',
                 'epic': 'Эпическая', 
                 'legendary': 'Легендарная',
-                'mythic': 'Мифическая'
+                'mythic': 'Мифическая',
+                'unique': 'Уникальная'
             };
             return names[rarity] || 'Обычная';
         }
@@ -1167,8 +1328,11 @@
             } else if (mopsCoins < 10000) {
                 level = '💎 Мастер';
                 nextLevel = 10000;
-            } else {
+            } else if (mopsCoins < 50000) {
                 level = '👑 Король мопсов';
+                nextLevel = 50000;
+            } else {
+                level = '🌟 БОГ МОПСОВ';
                 nextLevel = 'MAX';
             }
             
