@@ -111,6 +111,10 @@
             display: none;
         }
         
+        .index {
+            display: none;
+        }
+        
         .card {
             background: rgba(255,255,255,0.15);
             border-radius: 15px;
@@ -120,24 +124,34 @@
             transition: all 0.3s;
         }
         
+        .card.common {
+            border-color: #666;
+            background: rgba(102,102,102,0.1);
+        }
+        
         .card.rare {
-            border-color: #FFD700;
-            background: rgba(255,215,0,0.1);
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.1);
         }
         
         .card.epic {
-            border-color: #9370DB;
-            background: rgba(147,112,219,0.1);
+            border-color: #9C27B0;
+            background: rgba(156,39,176,0.1);
         }
         
         .card.legendary {
-            border-color: #FF4500;
-            background: rgba(255,69,0,0.1);
+            border-color: #FF9800;
+            background: rgba(255,152,0,0.1);
+        }
+        
+        .card.mythic {
+            border-color: #FF0000;
+            background: rgba(255,0,0,0.1);
         }
         
         .card-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
@@ -152,11 +166,13 @@
             border-radius: 10px;
             font-size: 0.8em;
             font-weight: bold;
+            color: white;
         }
         
         .card-stats {
             font-size: 0.9em;
             opacity: 0.9;
+            margin-bottom: 10px;
         }
         
         .buy-btn {
@@ -166,9 +182,13 @@
             padding: 8px 15px;
             border-radius: 10px;
             cursor: pointer;
-            margin-top: 10px;
             width: 100%;
             transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        .buy-btn:hover {
+            background: #45a049;
         }
         
         .buy-btn:disabled {
@@ -202,6 +222,7 @@
             border-radius: 10px;
             padding: 10px;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
         }
         
         .mops-animation {
@@ -230,6 +251,32 @@
                 transform: translateY(-80px) scale(0.5);
                 opacity: 0;
             }
+        }
+        
+        .index-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
         }
     </style>
 </head>
@@ -261,6 +308,7 @@
             <div class="tab active" onclick="switchTab('tap')">Тапать</div>
             <div class="tab" onclick="switchTab('shop')">Магазин</div>
             <div class="tab" onclick="switchTab('cards')">Карточки</div>
+            <div class="tab" onclick="switchTab('index')">Индекс</div>
         </div>
         
         <div id="tapTab" class="tab-content">
@@ -272,92 +320,569 @@
         
         <div id="shopTab" class="shop tab-content">
             <div class="timer" id="shopTimer">Магазин обновится через: 30:00</div>
-            <div id="shopItems"></div>
+            <div class="shop-grid" id="shopItems"></div>
         </div>
         
         <div id="cardsTab" class="cards tab-content">
             <div class="mining-info" id="miningInfo">Майнинг: 0 мопс-коинов/сек</div>
             <div class="card-grid" id="ownedCards"></div>
         </div>
+        
+        <div id="indexTab" class="index tab-content">
+            <div class="stats">
+                <div class="index-stats">
+                    <div class="stat-card">
+                        <div>Общий индекс</div>
+                        <div class="stat-value" id="totalIndex">0</div>
+                        <div>мопс-сила</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>Доход в час</div>
+                        <div class="stat-value" id="hourlyIncome">0</div>
+                        <div>мопсов/час</div>
+                    </div>
+                </div>
+                <div class="index-stats">
+                    <div class="stat-card">
+                        <div>Всего карточек</div>
+                        <div class="stat-value" id="totalCards">0</div>
+                        <div>шт</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>Редкость</div>
+                        <div class="stat-value" id="rarityScore">0</div>
+                        <div>очков</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         // Данные игры
-        let mopsCoins = 0;
+        let mopsCoins = 100; // Начальный баланс 100
         let totalTaps = 0;
         let ownedCards = [];
         let miningRate = 0;
         let lastMiningTime = Date.now();
         let shopItems = [];
-        let shopRefreshTime = Date.now() + 30 * 60 * 1000; // 30 минут
+        let shopRefreshTime = Date.now() + 30 * 60 * 1000;
         
-        // Типы карточек
+        // 50 карточек разных типов
         const cardTypes = [
+            // Самые дешевые и слабые карточки
             {
                 id: 1,
-                name: "Щенок мопса",
-                emoji: "🐶",
+                name: "Мопс шахтер",
+                emoji: "⛏️🐕",
                 rarity: "common",
                 price: 10,
-                mining: 0.1,
-                chance: 40
+                mining: 0.01,
+                chance: 15,
+                index: 1
             },
             {
                 id: 2,
-                name: "Взрослый мопс",
-                emoji: "🐕",
+                name: "Мопс новичок",
+                emoji: "🐶",
                 rarity: "common",
-                price: 25,
-                mining: 0.3,
-                chance: 30
+                price: 15,
+                mining: 0.02,
+                chance: 14,
+                index: 1
             },
             {
                 id: 3,
-                name: "Мопс в очках",
-                emoji: "🤓🐕",
-                rarity: "rare",
-                price: 50,
-                mining: 0.8,
-                chance: 15
+                name: "Голодный мопс",
+                emoji: "🍖🐕",
+                rarity: "common",
+                price: 20,
+                mining: 0.03,
+                chance: 13,
+                index: 2
             },
             {
                 id: 4,
-                name: "Королевский мопс",
-                emoji: "👑🐕",
-                rarity: "rare",
-                price: 100,
-                mining: 1.5,
-                chance: 10
+                name: "Сонный мопс",
+                emoji: "😴🐕",
+                rarity: "common",
+                price: 25,
+                mining: 0.04,
+                chance: 12,
+                index: 2
             },
             {
                 id: 5,
-                name: "Золотой мопс",
-                emoji: "⭐🐕",
-                rarity: "epic",
-                price: 250,
-                mining: 3,
-                chance: 4
+                name: "Игривый мопс",
+                emoji: "🎾🐕",
+                rarity: "common",
+                price: 30,
+                mining: 0.05,
+                chance: 11,
+                index: 3
             },
+
+            // Обычные карточки
             {
                 id: 6,
-                name: "Космический мопс",
-                emoji: "🚀🐕",
-                rarity: "epic",
-                price: 500,
-                mining: 6,
-                chance: 2
+                name: "Взрослый мопс",
+                emoji: "🐕",
+                rarity: "common",
+                price: 50,
+                mining: 0.1,
+                chance: 10,
+                index: 5
             },
             {
                 id: 7,
+                name: "Умный мопс",
+                emoji: "🤓🐕",
+                rarity: "common",
+                price: 75,
+                mining: 0.15,
+                chance: 9,
+                index: 6
+            },
+            {
+                id: 8,
+                name: "Спортивный мопс",
+                emoji: "🏃🐕",
+                rarity: "common",
+                price: 100,
+                mining: 0.2,
+                chance: 8,
+                index: 7
+            },
+            {
+                id: 9,
+                name: "Мопс в свитере",
+                emoji: "🧶🐕",
+                rarity: "common",
+                price: 125,
+                mining: 0.25,
+                chance: 7,
+                index: 8
+            },
+            {
+                id: 10,
+                name: "Мопс-повар",
+                emoji: "👨‍🍳🐕",
+                rarity: "common",
+                price: 150,
+                mining: 0.3,
+                chance: 6,
+                index: 9
+            },
+
+            // Редкие карточки
+            {
+                id: 11,
+                name: "Мопс в очках",
+                emoji: "👓🐕",
+                rarity: "rare",
+                price: 200,
+                mining: 0.5,
+                chance: 5,
+                index: 15
+            },
+            {
+                id: 12,
+                name: "Мопс-детектив",
+                emoji: "🕵️🐕",
+                rarity: "rare",
+                price: 250,
+                mining: 0.7,
+                chance: 4,
+                index: 18
+            },
+            {
+                id: 13,
+                name: "Мопс-супергерой",
+                emoji: "🦸🐕",
+                rarity: "rare",
+                price: 300,
+                mining: 0.9,
+                chance: 4,
+                index: 20
+            },
+            {
+                id: 14,
+                name: "Королевский мопс",
+                emoji: "👑🐕",
+                rarity: "rare",
+                price: 400,
+                mining: 1.2,
+                chance: 3,
+                index: 25
+            },
+            {
+                id: 15,
+                name: "Мопс-рыцарь",
+                emoji: "⚔️🐕",
+                rarity: "rare",
+                price: 500,
+                mining: 1.5,
+                chance: 3,
+                index: 30
+            },
+            {
+                id: 16,
+                name: "Мопс-пилот",
+                emoji: "✈️🐕",
+                rarity: "rare",
+                price: 600,
+                mining: 1.8,
+                chance: 2,
+                index: 35
+            },
+            {
+                id: 17,
+                name: "Мопс-доктор",
+                emoji: "👨‍⚕️🐕",
+                rarity: "rare",
+                price: 700,
+                mining: 2.1,
+                chance: 2,
+                index: 40
+            },
+            {
+                id: 18,
+                name: "Мопс-ученый",
+                emoji: "🔬🐕",
+                rarity: "rare",
+                price: 800,
+                mining: 2.5,
+                chance: 2,
+                index: 45
+            },
+            {
+                id: 19,
+                name: "Мопс-хакер",
+                emoji: "💻🐕",
+                rarity: "rare",
+                price: 900,
+                mining: 3.0,
+                chance: 1,
+                index: 50
+            },
+            {
+                id: 20,
+                name: "Мопс-миллионер",
+                emoji: "💰🐕",
+                rarity: "rare",
+                price: 1000,
+                mining: 3.5,
+                chance: 1,
+                index: 55
+            },
+
+            // Эпические карточки
+            {
+                id: 21,
+                name: "Золотой мопс",
+                emoji: "⭐🐕",
+                rarity: "epic",
+                price: 1500,
+                mining: 5,
+                chance: 3,
+                index: 80
+            },
+            {
+                id: 22,
+                name: "Космический мопс",
+                emoji: "🚀🐕",
+                rarity: "epic",
+                price: 2000,
+                mining: 7,
+                chance: 2,
+                index: 100
+            },
+            {
+                id: 23,
+                name: "Магический мопс",
+                emoji: "🔮🐕",
+                rarity: "epic",
+                price: 2500,
+                mining: 9,
+                chance: 2,
+                index: 120
+            },
+            {
+                id: 24,
+                name: "Вампир-мопс",
+                emoji: "🧛🐕",
+                rarity: "epic",
+                price: 3000,
+                mining: 12,
+                chance: 1,
+                index: 150
+            },
+            {
+                id: 25,
+                name: "Огненный мопс",
+                emoji: "🔥🐕",
+                rarity: "epic",
+                price: 3500,
+                mining: 15,
+                chance: 1,
+                index: 180
+            },
+            {
+                id: 26,
+                name: "Ледяной мопс",
+                emoji: "❄️🐕",
+                rarity: "epic",
+                price: 4000,
+                mining: 18,
+                chance: 1,
+                index: 200
+            },
+            {
+                id: 27,
+                name: "Электрический мопс",
+                emoji: "⚡🐕",
+                rarity: "epic",
+                price: 4500,
+                mining: 22,
+                chance: 1,
+                index: 220
+            },
+            {
+                id: 28,
+                name: "Теневой мопс",
+                emoji: "🌑🐕",
+                rarity: "epic",
+                price: 5000,
+                mining: 26,
+                chance: 1,
+                index: 250
+            },
+            {
+                id: 29,
+                name: "Кристальный мопс",
+                emoji: "💎🐕",
+                rarity: "epic",
+                price: 6000,
+                mining: 30,
+                chance: 1,
+                index: 280
+            },
+            {
+                id: 30,
+                name: "Радужный мопс",
+                emoji: "🌈🐕",
+                rarity: "epic",
+                price: 7000,
+                mining: 35,
+                chance: 1,
+                index: 300
+            },
+
+            // Легендарные карточки
+            {
+                id: 31,
                 name: "Легендарный мопс",
                 emoji: "💫🐕",
                 rarity: "legendary",
-                price: 1000,
-                mining: 12,
-                chance: 1
+                price: 10000,
+                mining: 50,
+                chance: 2,
+                index: 500
+            },
+            {
+                id: 32,
+                name: "Драко-мопс",
+                emoji: "🐲🐕",
+                rarity: "legendary",
+                price: 15000,
+                mining: 75,
+                chance: 1,
+                index: 750
+            },
+            {
+                id: 33,
+                name: "Феникс-мопс",
+                emoji: "🔥🦅🐕",
+                rarity: "legendary",
+                price: 20000,
+                mining: 100,
+                chance: 1,
+                index: 1000
+            },
+            {
+                id: 34,
+                name: "Единорог-мопс",
+                emoji: "🦄🐕",
+                rarity: "legendary",
+                price: 25000,
+                mining: 125,
+                chance: 1,
+                index: 1250
+            },
+            {
+                id: 35,
+                name: "Кибер-мопс",
+                emoji: "🤖🐕",
+                rarity: "legendary",
+                price: 30000,
+                mining: 150,
+                chance: 1,
+                index: 1500
+            },
+            {
+                id: 36,
+                name: "Галактический мопс",
+                emoji: "🌌🐕",
+                rarity: "legendary",
+                price: 35000,
+                mining: 180,
+                chance: 1,
+                index: 1800
+            },
+            {
+                id: 37,
+                name: "Временной мопс",
+                emoji: "⏰🐕",
+                rarity: "legendary",
+                price: 40000,
+                mining: 210,
+                chance: 1,
+                index: 2100
+            },
+            {
+                id: 38,
+                name: "Пространственный мопс",
+                emoji: "🌀🐕",
+                rarity: "legendary",
+                price: 45000,
+                mining: 240,
+                chance: 1,
+                index: 2400
+            },
+            {
+                id: 39,
+                name: "Квантовый мопс",
+                emoji: "⚛️🐕",
+                rarity: "legendary",
+                price: 50000,
+                mining: 270,
+                chance: 1,
+                index: 2700
+            },
+            {
+                id: 40,
+                name: "Бесконечный мопс",
+                emoji: "♾️🐕",
+                rarity: "legendary",
+                price: 60000,
+                mining: 300,
+                chance: 1,
+                index: 3000
+            },
+
+            // Мифические карточки
+            {
+                id: 41,
+                name: "Ангельский мопс",
+                emoji: "😇🐕",
+                rarity: "mythic",
+                price: 100000,
+                mining: 500,
+                chance: 1,
+                index: 5000
+            },
+            {
+                id: 42,
+                name: "Демонический мопс",
+                emoji: "😈🐕",
+                rarity: "mythic",
+                price: 150000,
+                mining: 750,
+                chance: 1,
+                index: 7500
+            },
+            {
+                id: 43,
+                name: "Божественный мопс",
+                emoji: "🙏🐕",
+                rarity: "mythic",
+                price: 200000,
+                mining: 1000,
+                chance: 1,
+                index: 10000
+            },
+            {
+                id: 44,
+                name: "Создатель мопсов",
+                emoji: "👨‍🎨🐕",
+                rarity: "mythic",
+                price: 250000,
+                mining: 1250,
+                chance: 1,
+                index: 12500
+            },
+            {
+                id: 45,
+                name: "Первый мопс",
+                emoji: "🥇🐕",
+                rarity: "mythic",
+                price: 300000,
+                mining: 1500,
+                chance: 1,
+                index: 15000
+            },
+            {
+                id: 46,
+                name: "Вечный мопс",
+                emoji: "⏳🐕",
+                rarity: "mythic",
+                price: 400000,
+                mining: 2000,
+                chance: 1,
+                index: 20000
+            },
+            {
+                id: 47,
+                name: "Абсолютный мопс",
+                emoji: "⚡🌟🐕",
+                rarity: "mythic",
+                price: 500000,
+                mining: 2500,
+                chance: 1,
+                index: 25000
+            },
+            {
+                id: 48,
+                name: "Мопс вселенной",
+                emoji: "🌠🐕",
+                rarity: "mythic",
+                price: 750000,
+                mining: 3500,
+                chance: 1,
+                index: 35000
+            },
+            {
+                id: 49,
+                name: "Мопс-бог",
+                emoji: "🌌🐕",
+                rarity: "mythic",
+                price: 1000000,
+                mining: 5000,
+                chance: 1,
+                index: 50000
+            },
+            {
+                id: 50,
+                name: "Мопс-легенда",
+                emoji: "📜🐕",
+                rarity: "mythic",
+                price: 1500000,
+                mining: 7500,
+                chance: 1,
+                index: 75000
             }
         ];
-        
+
         // Элементы DOM
         const mopsCoinsElement = document.getElementById('mopsCoins');
         const levelElement = document.getElementById('level');
@@ -368,21 +893,24 @@
         const shopTimerElement = document.getElementById('shopTimer');
         const shopItemsElement = document.getElementById('shopItems');
         const ownedCardsElement = document.getElementById('ownedCards');
-        
+        const totalIndexElement = document.getElementById('totalIndex');
+        const hourlyIncomeElement = document.getElementById('hourlyIncome');
+        const totalCardsElement = document.getElementById('totalCards');
+        const rarityScoreElement = document.getElementById('rarityScore');
+
         // Загрузка игры
         function loadGame() {
             try {
                 const saved = localStorage.getItem('mopsTapolka');
                 if (saved) {
                     const gameData = JSON.parse(saved);
-                    mopsCoins = gameData.mopsCoins || 0;
+                    mopsCoins = gameData.mopsCoins || 100;
                     totalTaps = gameData.totalTaps || 0;
                     ownedCards = gameData.ownedCards || [];
                     miningRate = gameData.miningRate || 0;
                     shopItems = gameData.shopItems || [];
                     shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
                     
-                    // Если магазин пустой, генерируем новые предметы
                     if (shopItems.length === 0) {
                         generateShopItems();
                     }
@@ -390,15 +918,16 @@
                     generateShopItems();
                 }
             } catch (e) {
-                console.log('Ошибка загрузки');
+                console.log('Ошибка загрузки:', e);
                 generateShopItems();
             }
             updateMiningRate();
             updateDisplay();
             updateShop();
             updateCards();
+            updateIndex();
         }
-        
+
         // Сохранение игры
         function saveGame() {
             try {
@@ -413,17 +942,16 @@
                 };
                 localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
             } catch (e) {
-                console.log('Ошибка сохранения');
+                console.log('Ошибка сохранения:', e);
             }
         }
-        
+
         // Тап по мопсу
         function tapMops() {
             mopsCoins++;
             totalTaps++;
             
             createFloatingMops();
-            
             updateDisplay();
             
             mopsElement.classList.add('mops-animation');
@@ -437,7 +965,7 @@
             
             saveGame();
         }
-        
+
         // Создание летящего мопса
         function createFloatingMops() {
             const floatingMops = document.createElement('div');
@@ -449,26 +977,29 @@
             document.body.appendChild(floatingMops);
             
             setTimeout(() => {
-                document.body.removeChild(floatingMops);
+                if (document.body.contains(floatingMops)) {
+                    document.body.removeChild(floatingMops);
+                }
             }, 1000);
         }
-        
+
         // Переключение вкладок
         function switchTab(tabName) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
             
-            document.querySelector(`.tab:nth-child(${tabName === 'tap' ? 1 : tabName === 'shop' ? 2 : 3})`).classList.add('active');
+            const tabIndex = ['tap', 'shop', 'cards', 'index'].indexOf(tabName) + 1;
+            document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
             document.getElementById(tabName + 'Tab').style.display = 'block';
         }
-        
+
         // Генерация предметов магазина
         function generateShopItems() {
             shopItems = [];
             const availableCards = [...cardTypes];
             
-            // Генерируем 3 случайные карточки
-            for (let i = 0; i < 3; i++) {
+            // Генерируем 6 случайных карточек
+            for (let i = 0; i < 6; i++) {
                 if (availableCards.length === 0) break;
                 
                 const totalChance = availableCards.reduce((sum, card) => sum + card.chance, 0);
@@ -485,51 +1016,64 @@
                 
                 if (selectedCard) {
                     shopItems.push({...selectedCard});
-                    // Удаляем карточку из доступных чтобы не повторялась
                     availableCards.splice(availableCards.findIndex(c => c.id === selectedCard.id), 1);
                 }
             }
             
             shopRefreshTime = Date.now() + 30 * 60 * 1000;
+            saveGame();
         }
-        
+
         // Покупка карточки
         function buyCard(cardId) {
+            console.log('Попытка покупки карточки:', cardId);
             const card = shopItems.find(c => c.id === cardId);
-            if (!card) return;
+            if (!card) {
+                console.log('Карточка не найдена');
+                return;
+            }
+            
+            console.log('Найдена карточка:', card.name, 'Цена:', card.price, 'Баланс:', mopsCoins);
             
             if (mopsCoins >= card.price) {
                 mopsCoins -= card.price;
                 ownedCards.push({...card});
                 shopItems = shopItems.filter(c => c.id !== cardId);
+                
                 updateMiningRate();
                 updateDisplay();
                 updateShop();
                 updateCards();
+                updateIndex();
                 saveGame();
+                
+                console.log('Карточка куплена успешно!');
+            } else {
+                console.log('Недостаточно средств');
             }
         }
-        
+
         // Обновление скорости майнинга
         function updateMiningRate() {
             miningRate = ownedCards.reduce((total, card) => total + card.mining, 0);
-            miningInfoElement.textContent = `Майнинг: ${miningRate.toFixed(1)} мопс-коинов/сек`;
+            miningInfoElement.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
         }
-        
+
         // Майнинг в фоне
         function processMining() {
             const now = Date.now();
-            const timePassed = (now - lastMiningTime) / 1000; // в секундах
+            const timePassed = (now - lastMiningTime) / 1000;
             
             if (timePassed > 0) {
                 const minedCoins = miningRate * timePassed;
                 mopsCoins += minedCoins;
                 lastMiningTime = now;
                 updateDisplay();
+                updateIndex();
                 saveGame();
             }
         }
-        
+
         // Обновление магазина
         function updateShop() {
             // Проверяем нужно ли обновить магазин
@@ -554,11 +1098,12 @@
                         <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">${getRarityName(card.rarity)}</div>
                     </div>
                     <div class="card-stats">
-                        Майнинг: ${card.mining} мопс/сек<br>
-                        Цена: ${card.price} 🐕
+                        💰 Майнинг: ${card.mining} мопс/сек<br>
+                        📊 Индекс: +${card.index}<br>
+                        🏷️ Цена: ${card.price.toLocaleString()} 🐕
                     </div>
                     <button class="buy-btn" onclick="buyCard(${card.id})" ${mopsCoins < card.price ? 'disabled' : ''}>
-                        ${mopsCoins < card.price ? 'Недостаточно 🐕' : 'Купить'}
+                        ${mopsCoins < card.price ? '❌ Недостаточно 🐕' : '✅ Купить за ' + card.price.toLocaleString() + ' 🐕'}
                     </button>
                 `;
                 shopItemsElement.appendChild(cardElement);
@@ -568,7 +1113,7 @@
                 shopItemsElement.innerHTML = '<div style="text-align: center; opacity: 0.7;">Магазин пуст</div>';
             }
         }
-        
+
         // Обновление карточек
         function updateCards() {
             ownedCardsElement.innerHTML = '';
@@ -578,7 +1123,6 @@
                 return;
             }
             
-            // Группируем карточки по типу
             const cardCounts = {};
             ownedCards.forEach(card => {
                 const key = card.id;
@@ -590,17 +1134,34 @@
             
             Object.values(cardCounts).forEach(({card, count}) => {
                 const cardElement = document.createElement('div');
-                cardElement.className = 'owned-card';
+                cardElement.className = `owned-card ${card.rarity}`;
                 cardElement.innerHTML = `
                     <div style="font-size: 2em;">${card.emoji}</div>
                     <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
                     <div style="font-size: 0.7em; opacity: 0.8;">×${count}</div>
                     <div style="font-size: 0.7em; margin-top: 5px;">+${card.mining}/сек</div>
+                    <div style="font-size: 0.6em; opacity: 0.6;">Индекс: ${card.index}</div>
                 `;
                 ownedCardsElement.appendChild(cardElement);
             });
         }
-        
+
+        // Обновление индекса
+        function updateIndex() {
+            const totalIndex = ownedCards.reduce((sum, card) => sum + card.index, 0);
+            const hourlyIncome = miningRate * 3600;
+            const totalCards = ownedCards.length;
+            
+            // Подсчет очков редкости
+            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50};
+            const rarityScore = ownedCards.reduce((score, card) => score + rarityWeights[card.rarity], 0);
+            
+            totalIndexElement.textContent = totalIndex.toLocaleString();
+            hourlyIncomeElement.textContent = Math.floor(hourlyIncome).toLocaleString();
+            totalCardsElement.textContent = totalCards;
+            rarityScoreElement.textContent = rarityScore;
+        }
+
         // Вспомогательные функции
         function getRarityColor(rarity) {
             switch(rarity) {
@@ -608,49 +1169,51 @@
                 case 'rare': return '#4CAF50';
                 case 'epic': return '#9C27B0';
                 case 'legendary': return '#FF9800';
+                case 'mythic': return '#FF0000';
                 default: return '#666';
             }
         }
-        
+
         function getRarityName(rarity) {
             switch(rarity) {
                 case 'common': return 'Обычная';
                 case 'rare': return 'Редкая';
                 case 'epic': return 'Эпическая';
                 case 'legendary': return 'Легендарная';
+                case 'mythic': return 'Мифическая';
                 default: return 'Обычная';
             }
         }
-        
+
         // Обновление отображения
         function updateDisplay() {
-            mopsCoinsElement.textContent = Math.floor(mopsCoins);
-            totalTapsElement.textContent = totalTaps;
+            mopsCoinsElement.textContent = Math.floor(mopsCoins).toLocaleString();
+            totalTapsElement.textContent = totalTaps.toLocaleString();
             
             let level = 'Новичок';
-            let nextLevel = 10;
+            let nextLevel = 100;
             
-            if (mopsCoins < 10) {
+            if (mopsCoins < 100) {
                 level = '🥉 Новичок';
-                nextLevel = 10;
-            } else if (mopsCoins < 50) {
-                level = '🥈 Любитель';
-                nextLevel = 50;
-            } else if (mopsCoins < 100) {
-                level = '🥇 Профи';
                 nextLevel = 100;
             } else if (mopsCoins < 500) {
-                level = '💎 Мастер';
+                level = '🥈 Любитель';
                 nextLevel = 500;
+            } else if (mopsCoins < 2000) {
+                level = '🥇 Профи';
+                nextLevel = 2000;
+            } else if (mopsCoins < 10000) {
+                level = '💎 Мастер';
+                nextLevel = 10000;
             } else {
                 level = '👑 Король мопсов';
                 nextLevel = 'MAX';
             }
             
             levelElement.textContent = level;
-            nextLevelElement.textContent = nextLevel;
+            nextLevelElement.textContent = nextLevel.toLocaleString();
         }
-        
+
         // Инициализация Telegram
         function initTelegram() {
             try {
@@ -662,14 +1225,14 @@
                 console.log('Telegram Web App не доступен');
             }
         }
-        
+
         // Игровой цикл
         function gameLoop() {
             processMining();
             updateShop();
             requestAnimationFrame(gameLoop);
         }
-        
+
         // Запуск игры
         function initGame() {
             loadGame();
@@ -683,10 +1246,9 @@
                 }
             });
             
-            // Показываем первую вкладку
             switchTab('tap');
         }
-        
+
         // Запускаем игру
         window.onload = initGame;
     </script>
