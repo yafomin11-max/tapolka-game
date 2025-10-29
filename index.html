@@ -122,51 +122,46 @@
             min-height: 300px;
         }
 
-        .shop-items {
-            display: grid;
-            gap: 10px;
-        }
-
-        .shop-item {
-            background: #f8f9fa;
+        .stars-package {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
             border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
         }
 
-        .item-info {
-            flex: 1;
-        }
-
-        .item-name {
+        .package-name {
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
-        .item-price {
-            color: #666;
-            font-size: 14px;
+        .package-stars {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
 
-        .buy-btn {
-            background: #28a745;
-            color: white;
+        .package-price {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .buy-stars-btn {
+            background: #333;
+            color: #FFD700;
             border: none;
-            padding: 8px 15px;
-            border-radius: 10px;
+            padding: 12px 20px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-        }
-
-        .buy-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+            width: 100%;
+            font-size: 16px;
         }
 
         .donate-item {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
             color: white;
             border-radius: 15px;
             padding: 15px;
@@ -199,25 +194,6 @@
             font-weight: bold;
         }
 
-        .inventory-item {
-            background: #e9ecef;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .inventory-emoji {
-            font-size: 24px;
-            margin-right: 10px;
-        }
-
-        .boost-active {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-        }
-
         .mining-display {
             text-align: center;
             padding: 10px;
@@ -244,14 +220,14 @@
             opacity: 1;
         }
 
-        .premium-badge {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #333;
-            padding: 2px 8px;
+        .stars-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
             border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #856404;
         }
     </style>
 </head>
@@ -294,7 +270,7 @@
 
         <div class="tabs">
             <div class="tab active" data-tab="shop">🛍️ Магазин</div>
-            <div class="tab" data-tab="donate">💎 Донат</div>
+            <div class="tab" data-tab="stars">⭐ Звезды</div>
             <div class="tab" data-tab="inventory">📦 Инвентарь</div>
             <div class="tab" data-tab="exchange">💱 Обмен</div>
         </div>
@@ -308,10 +284,19 @@
                 </div>
             </div>
 
-            <!-- Донат магазин -->
-            <div class="tab-content" id="donateContent" style="display: none;">
+            <!-- Донат через Stars -->
+            <div class="tab-content" id="starsContent" style="display: none;">
                 <div class="card">
-                    <h3>💎 Донат магазин</h3>
+                    <div class="stars-info">
+                        ⭐ <strong>Telegram Stars</strong><br>
+                        Покупка звезд поддерживает разработчика!<br>
+                        Звезды приходят на мой аккаунт разработчика ✅
+                    </div>
+                    
+                    <h3>⭐ Пакеты звезд</h3>
+                    <div id="starsPackages"></div>
+                    
+                    <h3 style="margin-top: 20px;">🛍️ Донат предметы</h3>
                     <div id="donateItems"></div>
                 </div>
             </div>
@@ -394,6 +379,42 @@
             }
         ];
 
+        // Пакеты звезд для Telegram Stars
+        const STARS_PACKAGES = [
+            {
+                id: "stars_small",
+                name: "⭐ Малый пакет",
+                stars_amount: 100,
+                premium_coins: 100,
+                bonus: 10,
+                description: "Попробуй возможности премиума!"
+            },
+            {
+                id: "stars_medium",
+                name: "⭐⭐ Средний пакет", 
+                stars_amount: 500,
+                premium_coins: 500,
+                bonus: 50,
+                description: "Для регулярных игроков"
+            },
+            {
+                id: "stars_large",
+                name: "⭐⭐⭐ Большой пакет",
+                stars_amount: 1000,
+                premium_coins: 1000,
+                bonus: 100,
+                description: "Максимум возможностей!"
+            },
+            {
+                id: "stars_mega",
+                name: "⭐⭐⭐⭐ Мега пакет",
+                stars_amount: 5000,
+                premium_coins: 5000,
+                bonus: 500,
+                description: "Для настоящих китов!"
+            }
+        ];
+
         // Состояние игры
         let gameState = {
             userId: tg.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1000000),
@@ -412,10 +433,86 @@
         function initGame() {
             loadGameState();
             renderShop();
+            renderStarsPackages();
             renderDonateShop();
             renderInventory();
             startMining();
+            setupTelegramStars();
             updateUI();
+        }
+
+        // Настройка Telegram Stars
+        function setupTelegramStars() {
+            // Telegram Stars автоматически обрабатывает платежи
+            // Деньги приходят на аккаунт разработчика
+            console.log("Telegram Stars инициализированы");
+        }
+
+        // Инициирование покупки звезд
+        function initiateStarsPurchase(packageId) {
+            const package = STARS_PACKAGES.find(p => p.id === packageId);
+            if (!package) {
+                showNotification('❌ Пакет не найден');
+                return;
+            }
+
+            // Создаем инвойс для Telegram Stars
+            const invoice = {
+                title: package.name,
+                description: package.description,
+                payload: `${gameState.userId}_${packageId}_${Date.now()}`,
+                currency: 'XTR', // Telegram Stars
+                prices: [
+                    {
+                        label: `${package.premium_coins + package.bonus} премиум монет`,
+                        amount: package.stars_amount * 100 // В центах (1 звезда = 100 центов)
+                    }
+                ],
+                // Дополнительные параметры для Stars
+                need_name: false,
+                need_phone_number: false,
+                need_email: false,
+                need_shipping_address: false,
+                is_flexible: false,
+                send_phone_number_to_provider: false,
+                send_email_to_provider: false
+            };
+
+            // Открываем окно оплаты
+            tg.openInvoice(invoice, (status) => {
+                if (status === 'paid') {
+                    // Обрабатываем успешный платеж
+                    processStarsPayment(packageId);
+                } else if (status === 'failed') {
+                    showNotification('❌ Платеж не прошел');
+                } else if (status === 'cancelled') {
+                    showNotification('⚠️ Платеж отменен');
+                } else if (status === 'pending') {
+                    showNotification('⏳ Платеж обрабатывается...');
+                }
+            });
+        }
+
+        // Обработка успешного платежа в звездах
+        function processStarsPayment(packageId) {
+            const package = STARS_PACKAGES.find(p => p.id === packageId);
+            if (package) {
+                const totalCoins = package.premium_coins + package.bonus;
+                gameState.premiumCoins += totalCoins;
+                gameState.gameTokens += totalCoins * gameState.exchangeRate;
+                
+                updateUI();
+                saveGameState();
+                
+                // Показываем уведомление об успехе
+                showNotification(
+                    `✅ Спасибо за покупку! Получено: ${totalCoins}💎 + ${(totalCoins * gameState.exchangeRate).toFixed(1)}🪙\n` +
+                    `⭐ ${package.stars_amount} звезд зачислены на мой аккаунт разработчика!`
+                );
+                
+                // Здесь звезды автоматически зачисляются на ваш аккаунт разработчика
+                // Telegram обрабатывает это на своей стороне
+            }
         }
 
         // Загрузка состояния игры
@@ -589,7 +686,7 @@
             document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(2);
         }
 
-        // Рендер магазина
+        // Рендер магазина карточек
         function renderShop() {
             const container = document.getElementById('shopItems');
             container.innerHTML = '';
@@ -614,7 +711,28 @@
             });
         }
 
-        // Рендер донат магазина
+        // Рендер пакетов звезд
+        function renderStarsPackages() {
+            const container = document.getElementById('starsPackages');
+            container.innerHTML = '';
+            
+            STARS_PACKAGES.forEach(pkg => {
+                const packageElement = document.createElement('div');
+                packageElement.className = 'stars-package';
+                packageElement.innerHTML = `
+                    <div class="package-name">${pkg.name}</div>
+                    <div class="package-stars">${'⭐'.repeat(pkg.stars_amount / 100)} ${pkg.stars_amount} звезд</div>
+                    <div class="package-price">${pkg.premium_coins + pkg.bonus} 💎 премиум монет</div>
+                    <div class="package-price">${pkg.description}</div>
+                    <button class="buy-stars-btn" onclick="initiateStarsPurchase('${pkg.id}')">
+                        Купить за ${pkg.stars_amount} ⭐
+                    </button>
+                `;
+                container.appendChild(packageElement);
+            });
+        }
+
+        // Рендер донат предметов
         function renderDonateShop() {
             const container = document.getElementById('donateItems');
             container.innerHTML = '';
@@ -677,7 +795,7 @@
             
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 2000);
+            }, 3000);
         }
 
         // Обработчики вкладок
@@ -698,22 +816,36 @@
         // Обработчик тапа
         document.getElementById('tapArea').addEventListener('click', tapMops);
 
-        // Симуляция покупки премиум валюты (в реальном приложении через Telegram Payments)
-        function addPremiumCoins(amount) {
+        // Функция для тестирования (без реальных платежей)
+        function testAddPremiumCoins(amount) {
             gameState.premiumCoins += amount;
             gameState.gameTokens += amount * gameState.exchangeRate;
             updateUI();
             saveGameState();
-            showNotification(`✅ Получено ${amount}💎 + ${(amount * gameState.exchangeRate).toFixed(1)}🪙`);
+            showNotification(`✅ Тест: получено ${amount}💎 + ${(amount * gameState.exchangeRate).toFixed(1)}🪙`);
         }
 
         // Запуск игры при загрузке
         document.addEventListener('DOMContentLoaded', initGame);
 
-        // Для тестирования - добавим кнопки покупки премиум валюты
+        // Для тестирования - добавим кнопки тестового пополнения
         setTimeout(() => {
-            const donateTab = document.querySelector('[data-tab="donate"]');
-            donateTab.innerHTML += ' <span class="premium-badge" onclick="addPremiumCoins(100)" style="cursor: pointer;">+100💎</span>';
+            const starsTab = document.querySelector('[data-tab="stars"]');
+            const testDiv = document.createElement('div');
+            testDiv.style.marginTop = '15px';
+            testDiv.style.padding = '10px';
+            testDiv.style.background = '#f8f9fa';
+            testDiv.style.borderRadius = '10px';
+            testDiv.style.textAlign = 'center';
+            testDiv.innerHTML = `
+                <div style="margin-bottom: 10px; font-size: 12px; color: #666;">Тестовое пополнение (для разработки):</div>
+                <div style="display: flex; gap: 5px; justify-content: center;">
+                    <button onclick="testAddPremiumCoins(100)" style="padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 12px;">+100💎</button>
+                    <button onclick="testAddPremiumCoins(500)" style="padding: 5px 10px; background: #17a2b8; color: white; border: none; border-radius: 5px; font-size: 12px;">+500💎</button>
+                    <button onclick="testAddPremiumCoins(1000)" style="padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 5px; font-size: 12px;">+1000💎</button>
+                </div>
+            `;
+            document.getElementById('starsContent').appendChild(testDiv);
         }, 1000);
     </script>
 </body>
