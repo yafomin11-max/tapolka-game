@@ -3,402 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Мопс Таполка</title>
+    <title>🐕 Мопс Таполка</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #8B4513, #D2691E);
-            color: #FFF;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 400px;
             margin: 0 auto;
         }
-        
+
         .header {
             text-align: center;
+            color: white;
             margin-bottom: 20px;
         }
-        
-        h1 {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
         }
-        
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
         .stats {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 15px 0;
-            backdrop-filter: blur(10px);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
         }
-        
-        .balance {
-            font-size: 2em;
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 18px;
             font-weight: bold;
-            text-align: center;
-            margin: 10px 0;
+            color: #333;
         }
-        
-        .mops {
-            font-size: 80px;
-            cursor: pointer;
-            margin: 20px 0;
-            transition: all 0.1s;
-            user-select: none;
-            text-align: center;
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
         }
-        
-        .mops:active {
-            transform: scale(0.9);
-        }
-        
-        .tap-btn {
+
+        .tap-area {
             background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 1.2em;
-            font-weight: bold;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 15px;
             cursor: pointer;
-            margin: 10px 0;
-            width: 100%;
-            transition: all 0.2s;
+            transition: transform 0.1s;
+            user-select: none;
         }
-        
-        .tap-btn:active {
+
+        .tap-area:active {
             transform: scale(0.95);
         }
-        
+
+        .tap-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .tap-subtext {
+            font-size: 14px;
+            color: #666;
+        }
+
         .tabs {
             display: flex;
-            margin: 20px 0;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
+            background: #f8f9fa;
+            border-radius: 15px;
             padding: 5px;
-            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
-        
+
         .tab {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
+            border-radius: 10px;
             cursor: pointer;
-            border-radius: 8px;
             transition: all 0.3s;
-            min-width: 80px;
-            font-size: 0.9em;
+            font-weight: 500;
         }
-        
+
         .tab.active {
-            background: rgba(255,255,255,0.2);
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
-        .shop, .cards, .index, .minigames, .trade, .promo, .referral {
-            display: none;
+
+        .content-area {
+            min-height: 300px;
         }
-        
-        .card {
-            background: rgba(255,255,255,0.15);
+
+        .shop-items {
+            display: grid;
+            gap: 10px;
+        }
+
+        .shop-item {
+            background: #f8f9fa;
             border-radius: 15px;
             padding: 15px;
-            margin: 10px 0;
-            border: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .card.common { border-color: #666; background: rgba(102,102,102,0.1); }
-        .card.rare { border-color: #4CAF50; background: rgba(76,175,80,0.1); }
-        .card.epic { border-color: #9C27B0; background: rgba(156,39,176,0.1); }
-        .card.legendary { border-color: #FF9800; background: rgba(255,152,0,0.1); }
-        .card.mythic { border-color: #FF0000; background: rgba(255,0,0,0.1); }
-        .card.unique { border-color: #FF00FF; background: rgba(255,0,255,0.1); }
-        
-        .card-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            justify-content: space-between;
         }
-        
-        .card-name {
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
             font-weight: bold;
-            font-size: 1.1em;
+            margin-bottom: 5px;
         }
-        
-        .card-rarity {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8em;
-            font-weight: bold;
-            color: white;
+
+        .item-price {
+            color: #666;
+            font-size: 14px;
         }
-        
-        .card-stats {
-            font-size: 0.9em;
-            opacity: 0.9;
-            margin-bottom: 10px;
-        }
-        
-        .chance-badge {
-            display: inline-block;
-            background: rgba(255,215,0,0.3);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8em;
-            margin-left: 5px;
-        }
-        
-        .buy-btn, .game-btn, .trade-btn, .promo-btn, .ref-btn, .exchange-btn {
-            background: #4CAF50;
+
+        .buy-btn {
+            background: #28a745;
             color: white;
             border: none;
             padding: 8px 15px;
             border-radius: 10px;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
             font-weight: bold;
-            margin-top: 5px;
         }
-        
-        .buy-btn:hover, .game-btn:hover, .trade-btn:hover, .promo-btn:hover, .ref-btn:hover, .exchange-btn:hover {
-            background: #45a049;
-        }
-        
-        .buy-btn:disabled, .game-btn:disabled {
-            background: #666;
+
+        .buy-btn:disabled {
+            background: #ccc;
             cursor: not-allowed;
         }
-        
-        .danger-btn {
-            background: #f44336;
-        }
-        
-        .danger-btn:hover {
-            background: #da190b;
-        }
-        
-        .mining-info {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        
-        .timer {
-            text-align: center;
-            margin: 10px 0;
-            font-size: 0.9em;
-            color: #FFD700;
-        }
-        
-        .card-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .owned-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-        
-        .owned-card.selected {
-            border-color: #FFD700;
-            background: rgba(255,215,0,0.2);
-        }
-        
-        .owned-card:active {
-            transform: scale(0.95);
-        }
-        
-        .card-id {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: rgba(0,0,0,0.5);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7em;
-            opacity: 0.7;
-        }
-        
-        .mops-animation {
-            animation: mopsPulse 0.3s ease-in-out;
-        }
-        
-        @keyframes mopsPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .floating-mops {
-            position: absolute;
-            font-size: 20px;
-            animation: floatUp 1s ease-out forwards;
-            pointer-events: none;
-        }
-        
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(0.5); opacity: 0; }
-        }
-        
-        .index-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .stat-card {
-            background: rgba(255,255,255,0.1);
+
+        .donate-item {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border-radius: 15px;
             padding: 15px;
-            border-radius: 10px;
-            text-align: center;
+            margin-bottom: 10px;
         }
-        
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        
-        .shop-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-        
-        .minigame-area {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
+
+        .currency-exchange {
+            background: #f8f9fa;
             border-radius: 15px;
-            margin: 10px 0;
-            text-align: center;
+            padding: 15px;
+            margin-bottom: 15px;
         }
-        
-        /* Стили для рулетки */
-        .roulette-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-        }
-        
-        .roulette-wheel {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 120px;
-            background: linear-gradient(45deg, #2c3e50, #34495e);
-            border-radius: 10px;
-            margin: 15px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .roulette-item {
-            font-size: 3em;
-            padding: 0 20px;
-            transition: all 0.1s;
-        }
-        
-        .roulette-center {
-            position: absolute;
-            font-size: 2em;
-            background: #e74c3c;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-        
-        .roulette-spinning .roulette-item {
-            animation: rouletteSpin 0.1s linear infinite;
-        }
-        
-        @keyframes rouletteSpin {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100px); }
-        }
-        
-        .roulette-result {
-            font-size: 4em;
-            margin: 20px 0;
-            animation: resultPop 0.5s ease-out;
-        }
-        
-        @keyframes resultPop {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .win { color: #4CAF50; }
-        .lose { color: #f44336; }
-        
-        .trade-input, .promo-input, .exchange-input {
+
+        .exchange-input {
             width: 100%;
             padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.1);
+            margin: 10px 0;
+        }
+
+        .exchange-btn {
+            background: #007bff;
             color: white;
-            margin: 10px 0;
-            font-size: 1em;
-        }
-        
-        .ref-link {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
+            border: none;
+            padding: 10px;
             border-radius: 10px;
-            margin: 10px 0;
-            word-break: break-all;
-            font-size: 0.9em;
-        }
-        
-        .bonus-timer {
-            color: #FFD700;
+            cursor: pointer;
+            width: 100%;
             font-weight: bold;
-            margin: 5px 0;
         }
-        
-        .exchange-offer {
-            background: rgba(255,255,255,0.1);
+
+        .inventory-item {
+            background: #e9ecef;
             border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
         }
-        
-        .exchange-list {
-            max-height: 300px;
-            overflow-y: auto;
+
+        .inventory-emoji {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .boost-active {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .mining-display {
+            text-align: center;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .premium-badge {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
         }
     </style>
 </head>
@@ -406,978 +259,462 @@
     <div class="container">
         <div class="header">
             <h1>🐕 Мопс Таполка</h1>
-            <div>Тапай за мопс-коинами!</div>
+            <p>Тапай мопса, собирай карточки, зарабатывай монеты!</p>
         </div>
-        
-        <div class="stats">
-            <div class="balance">
-                <span id="mopsCoins">0</span> 🐕
+
+        <div class="card">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="coins">100</div>
+                    <div class="stat-label">Монеты 🐕</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="taps">0</div>
+                    <div class="stat-label">Всего тапов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="premium">0</div>
+                    <div class="stat-label">Премиум 💎</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="tokens">0</div>
+                    <div class="stat-label">Токены 🪙</div>
+                </div>
             </div>
-            <div style="text-align: center;">
-                Уровень: <span id="level">Новичок</span>
-                <div id="bonusTimer" class="bonus-timer" style="display: none;"></div>
+
+            <div class="mining-display">
+                ⛏️ Автоматический майнинг: <span id="miningRate">0</span> монет/сек
+            </div>
+
+            <div class="tap-area" id="tapArea">
+                <div class="tap-text">🎯 ТАПНИ МОПСА!</div>
+                <div class="tap-subtext">Заработай монеты</div>
             </div>
         </div>
-        
-        <div class="mops" id="mops" onclick="tapMops()">
-            🐕
-        </div>
-        
-        <button class="tap-btn" onclick="tapMops()">
-            🎯 ТАПНУТЬ МОПСА!
-        </button>
-        
+
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('tap')">Тапать</div>
-            <div class="tab" onclick="switchTab('shop')">Магазин</div>
-            <div class="tab" onclick="switchTab('cards')">Карточки</div>
-            <div class="tab" onclick="switchTab('minigames')">Игры</div>
-            <div class="tab" onclick="switchTab('exchange')">Обмен</div>
-            <div class="tab" onclick="switchTab('promo')">Промо</div>
-            <div class="tab" onclick="switchTab('referral')">Рефералы</div>
-            <div class="tab" onclick="switchTab('index')">Индекс</div>
+            <div class="tab active" data-tab="shop">🛍️ Магазин</div>
+            <div class="tab" data-tab="donate">💎 Донат</div>
+            <div class="tab" data-tab="inventory">📦 Инвентарь</div>
+            <div class="tab" data-tab="exchange">💱 Обмен</div>
         </div>
-        
-        <div id="tapTab" class="tab-content">
-            <div class="stats">
-                <div>Всего тапов: <span id="totalTaps">0</span></div>
-                <div>До след. уровня: <span id="nextLevel">10</span> мопсов</div>
-            </div>
-        </div>
-        
-        <div id="shopTab" class="shop tab-content">
-            <div class="timer" id="shopTimer">Магазин обновится через: 30:00</div>
-            <div class="shop-grid" id="shopItems"></div>
-        </div>
-        
-        <div id="cardsTab" class="cards tab-content">
-            <div class="mining-info" id="miningInfo">Майнинг: 0 мопс-коинов/сек</div>
-            <div class="card-grid" id="ownedCards"></div>
-        </div>
-        
-        <div id="minigamesTab" class="minigames tab-content">
-            <div class="minigame-area">
-                <h3>🎰 Мопс-рулетка</h3>
-                <p>Выбери карточку для игры в рулетку (50% шанс):</p>
-                <div class="card-grid" id="gameCards"></div>
-                
-                <div class="roulette-container" id="rouletteContainer" style="display: none;">
-                    <div class="roulette-wheel" id="rouletteWheel">
-                        <div class="roulette-center">🎯</div>
-                        <div class="roulette-item">🐕</div>
-                        <div class="roulette-item">❌</div>
-                        <div class="roulette-item">🐕</div>
-                        <div class="roulette-item">❌</div>
-                        <div class="roulette-item">🐕</div>
-                        <div class="roulette-item">❌</div>
-                    </div>
-                    <div class="roulette-result" id="rouletteResult"></div>
-                </div>
-                
-                <button class="game-btn" onclick="startRoulette()" id="startRouletteBtn" disabled>Крутить рулетку</button>
-            </div>
-        </div>
-        
-        <div id="exchangeTab" class="trade tab-content">
-            <div class="minigame-area">
-                <h3>🤝 Обмен карточками</h3>
-                <p>Выбери карточку для обмена и установи цену:</p>
-                
-                <div class="card-grid" id="exchangeCards"></div>
-                
-                <div id="exchangeForm" style="display: none;">
-                    <h4>Обмен: <span id="selectedCardName"></span></h4>
-                    <input type="number" class="exchange-input" id="exchangePrice" placeholder="Цена в мопс-коинах" min="1">
-                    <button class="exchange-btn" onclick="createExchangeOffer()">Создать предложение</button>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h4>📋 Активные предложения:</h4>
-                    <div class="exchange-list" id="exchangeOffers"></div>
+
+        <div class="content-area">
+            <!-- Магазин карточек -->
+            <div class="tab-content" id="shopContent">
+                <div class="card">
+                    <h3>🛍️ Магазин карточек</h3>
+                    <div id="shopItems"></div>
                 </div>
             </div>
-        </div>
-        
-        <div id="promoTab" class="promo tab-content">
-            <div class="minigame-area">
-                <h3>🎁 Промокоды</h3>
-                <p>Введи промокод для получения награды:</p>
-                <input type="text" class="promo-input" id="promoCode" placeholder="Введите промокод">
-                <button class="promo-btn" onclick="activatePromoCode()">Активировать</button>
-                <div id="promoResult" style="margin-top: 15px;"></div>
-            </div>
-        </div>
-        
-        <div id="referralTab" class="referral tab-content">
-            <div class="minigame-area">
-                <h3>👥 Реферальная программа</h3>
-                <p>Пригласи друзей и получай бонусы!</p>
-                
-                <div class="ref-link" id="refLink">
-                    https://t.me/your_tapolka_bot?start=ref_<span id="refCode">0000</span>
-                </div>
-                <button class="ref-btn" onclick="copyRefLink()">📋 Скопировать ссылку</button>
-                
-                <div style="margin-top: 20px;">
-                    <h4>🎁 Бонусы за приглашение:</h4>
-                    <p>• Вы получаете: 500 🐕</p>
-                    <p>• Друг получает: x1.5 к заработку на 30 минут</p>
-                    <p>• Друг получает: 🎁 Реферального мопса</p>
-                    <p>• Приглашено друзей: <span id="refCount">0</span></p>
+
+            <!-- Донат магазин -->
+            <div class="tab-content" id="donateContent" style="display: none;">
+                <div class="card">
+                    <h3>💎 Донат магазин</h3>
+                    <div id="donateItems"></div>
                 </div>
             </div>
-        </div>
-        
-        <div id="indexTab" class="index tab-content">
-            <div class="stats">
-                <div class="index-stats">
-                    <div class="stat-card">
-                        <div>Общий индекс</div>
-                        <div class="stat-value" id="totalIndex">0</div>
-                        <div>мопс-сила</div>
-                    </div>
-                    <div class="stat-card">
-                        <div>Доход в час</div>
-                        <div class="stat-value" id="hourlyIncome">0</div>
-                        <div>мопсов/час</div>
-                    </div>
+
+            <!-- Инвентарь -->
+            <div class="tab-content" id="inventoryContent" style="display: none;">
+                <div class="card">
+                    <h3>📦 Ваши мопсы</h3>
+                    <div id="inventoryItems"></div>
                 </div>
-                <div class="index-stats">
-                    <div class="stat-card">
-                        <div>Всего карточек</div>
-                        <div class="stat-value" id="totalCards">0</div>
-                        <div>шт</div>
-                    </div>
-                    <div class="stat-card">
-                        <div>Редкость</div>
-                        <div class="stat-value" id="rarityScore">0</div>
-                        <div>очков</div>
+            </div>
+
+            <!-- Обмен валюты -->
+            <div class="tab-content" id="exchangeContent" style="display: none;">
+                <div class="card">
+                    <h3>💱 Обмен валюты</h3>
+                    <div class="currency-exchange">
+                        <p>Курс: 1💎 = 0.1🪙</p>
+                        <input type="number" class="exchange-input" id="exchangeAmount" placeholder="Сумма" value="10">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="exchange-btn" onclick="exchangeCurrency('premium')">
+                                💎 → 🪙
+                            </button>
+                            <button class="exchange-btn" onclick="exchangeCurrency('tokens')">
+                                🪙 → 💎
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="notification" id="notification"></div>
+
     <script>
-        // Глобальный счетчик для уникальных ID
-        let globalCardIdCounter = 1000;
-        let globalExchangeIdCounter = 1;
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
 
-        // Данные игры
-        let mopsCoins = 100;
-        let totalTaps = 0;
-        let ownedCards = [];
-        let miningRate = 0;
-        let lastMiningTime = Date.now();
-        let shopItems = [];
-        let shopRefreshTime = Date.now() + 30 * 60 * 1000;
-        let selectedCardForGame = null;
-        let selectedCardForExchange = null;
-        let isRouletteSpinning = false;
-        let usedPromoCodes = [];
-        let referralCode = '';
-        let referredUsers = [];
-        let referralBonusActive = false;
-        let referralBonusEndTime = 0;
-        let tapMultiplier = 1;
-        let exchangeOffers = [];
-
-        // МНОГО новых карточек для игры
-        const cardTypes = [
-            // Обычные карточки
-            { id: 1, name: "Мопс шахтер", emoji: "⛏️🐕", rarity: "common", price: 10, mining: 0.01, shopChance: 15, index: 1 },
-            { id: 2, name: "Взрослый мопс", emoji: "🐕", rarity: "common", price: 50, mining: 0.1, shopChance: 10, index: 5 },
-            { id: 3, name: "Щенок мопса", emoji: "🐶", rarity: "common", price: 25, mining: 0.05, shopChance: 12, index: 3 },
-            { id: 4, name: "Спящий мопс", emoji: "😴🐕", rarity: "common", price: 30, mining: 0.08, shopChance: 11, index: 4 },
-            { id: 5, name: "Голодный мопс", emoji: "🍖🐕", rarity: "common", price: 40, mining: 0.12, shopChance: 9, index: 6 },
-            
-            // Редкие карточки
-            { id: 6, name: "Мопс в очках", emoji: "🤓🐕", rarity: "rare", price: 200, mining: 0.5, shopChance: 5, index: 15 },
-            { id: 7, name: "Мопс-повар", emoji: "👨‍🍳🐕", rarity: "rare", price: 300, mining: 0.8, shopChance: 4, index: 20 },
-            { id: 8, name: "Мопс-спортсмен", emoji: "🏃🐕", rarity: "rare", price: 250, mining: 0.6, shopChance: 5, index: 18 },
-            { id: 9, name: "Мопс-музыкант", emoji: "🎵🐕", rarity: "rare", price: 280, mining: 0.7, shopChance: 4, index: 22 },
-            { id: 10, name: "Мопс-детектив", emoji: "🕵️🐕", rarity: "rare", price: 320, mining: 0.9, shopChance: 3, index: 25 },
-            
-            // Эпические карточки
-            { id: 11, name: "Золотой мопс", emoji: "⭐🐕", rarity: "epic", price: 1500, mining: 5, shopChance: 3, index: 80 },
-            { id: 12, name: "Космический мопс", emoji: "🚀🐕", rarity: "epic", price: 2000, mining: 8, shopChance: 2, index: 100 },
-            { id: 13, name: "Магический мопс", emoji: "🔮🐕", rarity: "epic", price: 1800, mining: 6, shopChance: 2, index: 90 },
-            { id: 14, name: "Кибер-мопс", emoji: "🤖🐕", rarity: "epic", price: 2200, mining: 9, shopChance: 2, index: 110 },
-            { id: 15, name: "Королевский мопс", emoji: "👑🐕", rarity: "epic", price: 2500, mining: 10, shopChance: 1, index: 120 },
-            
-            // Легендарные карточки
-            { id: 16, name: "Легендарный мопс", emoji: "💫🐕", rarity: "legendary", price: 10000, mining: 50, shopChance: 2, index: 500 },
-            { id: 17, name: "Драконий мопс", emoji: "🐲🐕", rarity: "legendary", price: 15000, mining: 80, shopChance: 1, index: 700 },
-            { id: 18, name: "Ангельский мопс", emoji: "😇🐕", rarity: "legendary", price: 12000, mining: 60, shopChance: 1, index: 600 },
-            { id: 19, name: "Демонический мопс", emoji: "😈🐕", rarity: "legendary", price: 13000, mining: 70, shopChance: 1, index: 650 },
-            { id: 20, name: "Водяной мопс", emoji: "🌊🐕", rarity: "legendary", price: 11000, mining: 55, shopChance: 1, index: 550 },
-            
-            // Мифические карточки
-            { id: 21, name: "Феникс-мопс", emoji: "🔥🐕", rarity: "mythic", price: 50000, mining: 200, shopChance: 0.5, index: 2000 },
-            { id: 22, name: "Единорог-мопс", emoji: "🦄🐕", rarity: "mythic", price: 60000, mining: 250, shopChance: 0.5, index: 2500 },
-            { id: 23, name: "Ктулху-мопс", emoji: "🐙🐕", rarity: "mythic", price: 70000, mining: 300, shopChance: 0.3, index: 3000 },
-            { id: 24, name: "Галактический мопс", emoji: "🌌🐕", rarity: "mythic", price: 80000, mining: 350, shopChance: 0.2, index: 3500 },
-            
-            // Уникальные карточки
-            { id: 25, name: "Бог мопсов", emoji: "🙏🐕", rarity: "unique", price: 100000, mining: 500, shopChance: 0.1, index: 5000 },
-            { id: 26, name: "Создатель мопсов", emoji: "⚡🐕", rarity: "unique", price: 150000, mining: 800, shopChance: 0.05, index: 8000 },
-            
-            // Реферальные и специальные
-            { id: 27, name: "Реферальный мопс", emoji: "🎁🐕", rarity: "rare", price: 0, mining: 2, shopChance: 0, index: 25 },
-            { id: 28, name: "Праздничный мопс", emoji: "🎄🐕", rarity: "epic", price: 5000, mining: 15, shopChance: 1, index: 150 },
-            { id: 29, name: "Хэллоуин мопс", emoji: "🎃🐕", rarity: "epic", price: 4500, mining: 12, shopChance: 1, index: 130 },
-            { id: 30, name: "Новогодний мопс", emoji: "🎉🐕", rarity: "legendary", price: 20000, mining: 100, shopChance: 0.5, index: 1000 }
+        // Игровые данные
+        const CARD_TYPES = [
+            { id: 1, name: "Мопс шахтер", emoji: "⛏️🐕", rarity: "common", price: 10, mining: 0.01 },
+            { id: 2, name: "Взрослый мопс", emoji: "🐕", rarity: "common", price: 50, mining: 0.1 },
+            { id: 3, name: "Мопс в очках", emoji: "🤓🐕", rarity: "rare", price: 200, mining: 0.5 },
+            { id: 4, name: "Золотой мопс", emoji: "⭐🐕", rarity: "epic", price: 1500, mining: 5 },
+            { id: 5, name: "Легендарный мопс", emoji: "💫🐕", rarity: "legendary", price: 10000, mining: 50 }
         ];
 
-        // Промокоды
-        const promoCodes = {
-            'mops': { coins: 5000, used: false },
-            'mandarin': { coins: 5000, used: false },
-            'kolbasa': { coins: 5000, used: false },
-            'tapolka': { coins: 10000, used: false },
-            'mopslove': { coins: 7500, used: false }
-        };
-
-        // Элементы DOM
-        const elements = {
-            mopsCoins: document.getElementById('mopsCoins'),
-            level: document.getElementById('level'),
-            totalTaps: document.getElementById('totalTaps'),
-            nextLevel: document.getElementById('nextLevel'),
-            mops: document.getElementById('mops'),
-            miningInfo: document.getElementById('miningInfo'),
-            shopTimer: document.getElementById('shopTimer'),
-            shopItems: document.getElementById('shopItems'),
-            ownedCards: document.getElementById('ownedCards'),
-            totalIndex: document.getElementById('totalIndex'),
-            hourlyIncome: document.getElementById('hourlyIncome'),
-            totalCards: document.getElementById('totalCards'),
-            rarityScore: document.getElementById('rarityScore'),
-            gameCards: document.getElementById('gameCards'),
-            startRouletteBtn: document.getElementById('startRouletteBtn'),
-            rouletteContainer: document.getElementById('rouletteContainer'),
-            rouletteWheel: document.getElementById('rouletteWheel'),
-            rouletteResult: document.getElementById('rouletteResult'),
-            promoCode: document.getElementById('promoCode'),
-            promoResult: document.getElementById('promoResult'),
-            refLink: document.getElementById('refLink'),
-            refCode: document.getElementById('refCode'),
-            refCount: document.getElementById('refCount'),
-            bonusTimer: document.getElementById('bonusTimer'),
-            exchangeCards: document.getElementById('exchangeCards'),
-            exchangeForm: document.getElementById('exchangeForm'),
-            selectedCardName: document.getElementById('selectedCardName'),
-            exchangePrice: document.getElementById('exchangePrice'),
-            exchangeOffers: document.getElementById('exchangeOffers')
-        };
-
-        // Генератор уникального ID карточки
-        function generateUniqueCardId() {
-            return 'MC' + Date.now() + '_' + (globalCardIdCounter++);
-        }
-
-        // Генератор реферального кода
-        function generateReferralCode() {
-            return Math.random().toString(36).substring(2, 6).toUpperCase();
-        }
-
-        // Загрузка игры
-        function loadGame() {
-            try {
-                const saved = localStorage.getItem('mopsTapolka');
-                if (saved) {
-                    const gameData = JSON.parse(saved);
-                    mopsCoins = gameData.mopsCoins || 100;
-                    totalTaps = gameData.totalTaps || 0;
-                    ownedCards = gameData.ownedCards || [];
-                    miningRate = gameData.miningRate || 0;
-                    shopItems = gameData.shopItems || [];
-                    shopRefreshTime = gameData.shopRefreshTime || (Date.now() + 30 * 60 * 1000);
-                    usedPromoCodes = gameData.usedPromoCodes || [];
-                    referralCode = gameData.referralCode || generateReferralCode();
-                    referredUsers = gameData.referredUsers || [];
-                    referralBonusActive = gameData.referralBonusActive || false;
-                    referralBonusEndTime = gameData.referralBonusEndTime || 0;
-                    globalCardIdCounter = gameData.globalCardIdCounter || 1000;
-                    exchangeOffers = gameData.exchangeOffers || [];
-                    globalExchangeIdCounter = gameData.globalExchangeIdCounter || 1;
-                    
-                    // Восстанавливаем состояние промокодов
-                    Object.keys(promoCodes).forEach(code => {
-                        if (usedPromoCodes.includes(code)) {
-                            promoCodes[code].used = true;
-                        }
-                    });
-                    
-                    if (shopItems.length === 0) {
-                        generateShopItems();
-                    }
-                } else {
-                    referralCode = generateReferralCode();
-                    generateShopItems();
-                }
-            } catch (e) {
-                console.log('Ошибка загрузки:', e);
-                referralCode = generateReferralCode();
-                generateShopItems();
+        const DONATE_SHOP = [
+            {
+                id: "boost_1h",
+                name: "⚡ Буст на 1 час",
+                description: "Удваивает доход от тапов",
+                price_premium: 10,
+                price_tokens: 1,
+                effect: "tap_multiplier",
+                value: 2,
+                duration: 3600
+            },
+            {
+                id: "mining_boost", 
+                name: "🏭 Буст майнинга",
+                description: "+50% к майнингу на 2 часа",
+                price_premium: 15,
+                price_tokens: 1.5,
+                effect: "mining_multiplier", 
+                value: 1.5,
+                duration: 7200
+            },
+            {
+                id: "skin_gold",
+                name: "🎨 Золотой мопс",
+                description: "Эксклюзивный скин",
+                price_premium: 50,
+                price_tokens: 5,
+                effect: "skin",
+                value: "golden"
             }
-            
-            updateMiningRate();
-            updateDisplay();
-            updateShop();
-            updateCards();
-            updateIndex();
-            updateGameCards();
-            updateReferralInfo();
-            updateExchangeOffers();
-            checkReferralBonus();
+        ];
+
+        // Состояние игры
+        let gameState = {
+            userId: tg.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1000000),
+            mopsCoins: 100,
+            premiumCoins: 0,
+            gameTokens: 0,
+            totalTaps: 0,
+            miningRate: 0,
+            ownedCards: [],
+            activeBoosts: [],
+            inventory: [],
+            exchangeRate: 0.1
+        };
+
+        // Инициализация игры
+        function initGame() {
+            loadGameState();
+            renderShop();
+            renderDonateShop();
+            renderInventory();
+            startMining();
+            updateUI();
         }
 
-        // Сохранение игры
-        function saveGame() {
-            try {
-                const gameData = {
-                    mopsCoins: mopsCoins,
-                    totalTaps: totalTaps,
-                    ownedCards: ownedCards,
-                    miningRate: miningRate,
-                    shopItems: shopItems,
-                    shopRefreshTime: shopRefreshTime,
-                    usedPromoCodes: usedPromoCodes,
-                    referralCode: referralCode,
-                    referredUsers: referredUsers,
-                    referralBonusActive: referralBonusActive,
-                    referralBonusEndTime: referralBonusEndTime,
-                    globalCardIdCounter: globalCardIdCounter,
-                    exchangeOffers: exchangeOffers,
-                    globalExchangeIdCounter: globalExchangeIdCounter,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('mopsTapolka', JSON.stringify(gameData));
-            } catch (e) {
-                console.log('Ошибка сохранения:', e);
+        // Загрузка состояния игры
+        function loadGameState() {
+            const saved = localStorage.getItem(`mops_game_${gameState.userId}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(gameState, parsed);
             }
         }
 
-        // Тап по мопсу с учетом множителя
+        // Сохранение состояния игры
+        function saveGameState() {
+            localStorage.setItem(`mops_game_${gameState.userId}`, JSON.stringify(gameState));
+        }
+
+        // Тап по мопсу
         function tapMops() {
-            mopsCoins += tapMultiplier;
-            totalTaps++;
+            let earned = 1;
             
-            createFloatingMops();
-            updateDisplay();
-            
-            elements.mops.classList.add('mops-animation');
-            setTimeout(() => {
-                elements.mops.classList.remove('mops-animation');
-            }, 300);
-            
-            if (navigator.vibrate) {
-                navigator.vibrate(30);
-            }
-            
-            saveGame();
-        }
-
-        // Создание летящего мопса
-        function createFloatingMops() {
-            const floatingMops = document.createElement('div');
-            floatingMops.className = 'floating-mops';
-            floatingMops.textContent = `+${tapMultiplier} 🐕`;
-            floatingMops.style.left = Math.random() * 200 + 100 + 'px';
-            floatingMops.style.top = '250px';
-            
-            document.body.appendChild(floatingMops);
-            
-            setTimeout(() => {
-                if (document.body.contains(floatingMops)) {
-                    document.body.removeChild(floatingMops);
+            // Применяем активные бусты
+            gameState.activeBoosts.forEach(boost => {
+                if (boost.effect === 'tap_multiplier' && Date.now() < boost.expiresAt) {
+                    earned *= boost.value;
                 }
-            }, 1000);
+            });
+            
+            gameState.mopsCoins += earned;
+            gameState.totalTaps += 1;
+            
+            updateUI();
+            saveGameState();
+            showNotification(`+${earned} 🐕`);
+            
+            return earned;
         }
 
-        // Переключение вкладок
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
-            
-            const tabs = ['tap', 'shop', 'cards', 'minigames', 'exchange', 'promo', 'referral', 'index'];
-            const tabIndex = tabs.indexOf(tabName) + 1;
-            document.querySelector(`.tab:nth-child(${tabIndex})`).classList.add('active');
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-            
-            if (tabName === 'minigames') {
-                updateGameCards();
-            } else if (tabName === 'exchange') {
-                updateExchangeCards();
-                updateExchangeOffers();
-            } else if (tabName === 'referral') {
-                updateReferralInfo();
-            }
-        }
-
-        // Генерация предметов магазина
-        function generateShopItems() {
-            shopItems = [];
-            const availableCards = cardTypes.filter(card => card.shopChance > 0);
-            
-            for (let i = 0; i < 4; i++) {
-                if (availableCards.length === 0) break;
-                
-                const totalChance = availableCards.reduce((sum, card) => sum + card.shopChance, 0);
-                let random = Math.random() * totalChance;
-                let selectedCard = null;
-                
-                for (const card of availableCards) {
-                    random -= card.shopChance;
-                    if (random <= 0) {
-                        selectedCard = card;
-                        break;
-                    }
-                }
-                
-                if (selectedCard) {
-                    shopItems.push({...selectedCard});
-                    availableCards.splice(availableCards.findIndex(c => c.id === selectedCard.id), 1);
-                }
-            }
-            
-            shopRefreshTime = Date.now() + 30 * 60 * 1000;
-            saveGame();
-        }
-
-        // Функция покупки карточки
+        // Покупка карточки
         function buyCard(cardId) {
-            const card = shopItems.find(c => c.id === cardId);
-            if (!card) return;
+            const card = CARD_TYPES.find(c => c.id === cardId);
+            if (!card) return false;
             
-            if (mopsCoins >= card.price) {
-                mopsCoins -= card.price;
-                const newCard = {
-                    ...card,
-                    uniqueId: generateUniqueCardId()
-                };
-                ownedCards.push(newCard);
-                shopItems = shopItems.filter(c => c.id !== cardId);
+            if (gameState.mopsCoins >= card.price) {
+                gameState.mopsCoins -= card.price;
+                gameState.ownedCards.push(card);
+                gameState.miningRate = calculateMiningRate();
                 
-                updateMiningRate();
-                updateDisplay();
-                updateShop();
-                updateCards();
-                updateIndex();
-                updateGameCards();
-                saveGame();
+                updateUI();
+                saveGameState();
+                renderShop();
+                renderInventory();
+                showNotification(`✅ Куплен: ${card.name}`);
+                return true;
+            } else {
+                showNotification('❌ Недостаточно монет');
+                return false;
             }
         }
 
-        // Обновление скорости майнинга
-        function updateMiningRate() {
-            miningRate = ownedCards.reduce((total, card) => total + card.mining, 0);
-            elements.miningInfo.textContent = `Майнинг: ${miningRate.toFixed(2)} мопс-коинов/сек`;
-        }
-
-        // Майнинг в фоне
-        function processMining() {
-            const now = Date.now();
-            const timePassed = (now - lastMiningTime) / 1000;
+        // Покупка донат предмета
+        function buyDonateItem(itemId, currencyType = 'premium') {
+            const item = DONATE_SHOP.find(i => i.id === itemId);
+            if (!item) return false;
             
-            if (timePassed > 0) {
-                const minedCoins = miningRate * timePassed;
-                mopsCoins += minedCoins;
-                lastMiningTime = now;
-                updateDisplay();
-                updateIndex();
-                saveGame();
+            const price = currencyType === 'premium' ? item.price_premium : item.price_tokens;
+            const balance = currencyType === 'premium' ? gameState.premiumCoins : gameState.gameTokens;
+            
+            if (balance >= price) {
+                // Списываем валюту
+                if (currencyType === 'premium') {
+                    gameState.premiumCoins -= price;
+                } else {
+                    gameState.gameTokens -= price;
+                }
+                
+                // Применяем эффект
+                if (item.effect === 'tap_multiplier' || item.effect === 'mining_multiplier') {
+                    gameState.activeBoosts.push({
+                        id: item.id,
+                        name: item.name,
+                        effect: item.effect,
+                        value: item.value,
+                        expiresAt: Date.now() + (item.duration * 1000)
+                    });
+                }
+                
+                gameState.inventory.push({
+                    id: item.id,
+                    name: item.name,
+                    type: 'boost'
+                });
+                
+                updateUI();
+                saveGameState();
+                renderDonateShop();
+                showNotification(`✅ Куплен: ${item.name}`);
+                return true;
+            } else {
+                showNotification(`❌ Недостаточно ${currencyType === 'premium' ? 'премиум монет' : 'токенов'}`);
+                return false;
             }
         }
 
-        // Обновление магазина с отображением шансов появления
-        function updateShop() {
-            if (Date.now() >= shopRefreshTime) {
-                generateShopItems();
+        // Обмен валюты
+        function exchangeCurrency(fromCurrency) {
+            const amount = parseInt(document.getElementById('exchangeAmount').value) || 0;
+            
+            if (amount <= 0) {
+                showNotification('❌ Введите сумму');
+                return;
             }
             
-            const timeLeft = Math.max(0, shopRefreshTime - Date.now());
-            const minutes = Math.floor(timeLeft / 60000);
-            const seconds = Math.floor((timeLeft % 60000) / 1000);
-            elements.shopTimer.textContent = `Магазин обновится через: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if (fromCurrency === 'premium') {
+                if (gameState.premiumCoins >= amount) {
+                    const tokens = amount * gameState.exchangeRate;
+                    gameState.premiumCoins -= amount;
+                    gameState.gameTokens += tokens;
+                    showNotification(`✅ Обмен: ${amount}💎 → ${tokens.toFixed(1)}🪙`);
+                } else {
+                    showNotification('❌ Недостаточно премиум монет');
+                    return;
+                }
+            } else {
+                if (gameState.gameTokens >= amount) {
+                    const premium = amount / gameState.exchangeRate;
+                    gameState.premiumCoins += premium;
+                    gameState.gameTokens -= amount;
+                    showNotification(`✅ Обмен: ${amount}🪙 → ${premium.toFixed(1)}💎`);
+                } else {
+                    showNotification('❌ Недостаточно токенов');
+                    return;
+                }
+            }
             
-            elements.shopItems.innerHTML = '';
-            shopItems.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `card ${card.rarity}`;
-                cardElement.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-name">${card.emoji} ${card.name}</div>
-                        <div class="card-rarity" style="background: ${getRarityColor(card.rarity)}">
-                            ${getRarityName(card.rarity)}
-                            <span class="chance-badge">${card.shopChance}% в магазине</span>
-                        </div>
+            updateUI();
+            saveGameState();
+        }
+
+        // Расчет майнинга
+        function calculateMiningRate() {
+            let rate = gameState.ownedCards.reduce((sum, card) => sum + card.mining, 0);
+            
+            // Применяем бусты майнинга
+            gameState.activeBoosts.forEach(boost => {
+                if (boost.effect === 'mining_multiplier' && Date.now() < boost.expiresAt) {
+                    rate *= boost.value;
+                }
+            });
+            
+            return rate;
+        }
+
+        // Автоматический майнинг
+        function startMining() {
+            setInterval(() => {
+                const mined = gameState.miningRate;
+                if (mined > 0) {
+                    gameState.mopsCoins += mined;
+                    updateUI();
+                    saveGameState();
+                }
+            }, 1000); // Каждую секунду
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            document.getElementById('coins').textContent = Math.floor(gameState.mopsCoins);
+            document.getElementById('taps').textContent = gameState.totalTaps;
+            document.getElementById('premium').textContent = gameState.premiumCoins;
+            document.getElementById('tokens').textContent = gameState.gameTokens.toFixed(1);
+            document.getElementById('miningRate').textContent = gameState.miningRate.toFixed(2);
+        }
+
+        // Рендер магазина
+        function renderShop() {
+            const container = document.getElementById('shopItems');
+            container.innerHTML = '';
+            
+            CARD_TYPES.forEach(card => {
+                const owned = gameState.ownedCards.some(c => c.id === card.id);
+                const canAfford = gameState.mopsCoins >= card.price;
+                
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${card.emoji} ${card.name} <span style="color: #666; font-size: 12px;">${card.rarity}</span></div>
+                        <div class="item-price">💰 ${card.price} 🐕 | ⛏️ +${card.mining}/сек</div>
                     </div>
-                    <div class="card-stats">
-                        💰 Майнинг: ${card.mining} мопс/сек<br>
-                        📊 Индекс: +${card.index}<br>
-                        🎰 Шанс в рулетке: 50%<br>
-                        🏷️ Цена: ${card.price.toLocaleString()} 🐕
-                    </div>
-                    <button class="buy-btn" onclick="buyCard(${card.id})" ${mopsCoins < card.price ? 'disabled' : ''}>
-                        ${mopsCoins < card.price ? '❌ Недостаточно 🐕' : '✅ Купить за ' + card.price.toLocaleString() + ' 🐕'}
+                    <button class="buy-btn" ${owned || !canAfford ? 'disabled' : ''} 
+                            onclick="buyCard(${card.id})">
+                        ${owned ? '✅' : canAfford ? 'Купить' : 'Недостаточно'}
                     </button>
                 `;
-                elements.shopItems.appendChild(cardElement);
-            });
-            
-            if (shopItems.length === 0) {
-                elements.shopItems.innerHTML = '<div style="text-align: center; opacity: 0.7;">Магазин пуст</div>';
-            }
-        }
-
-        // Обновление карточек с уникальными ID
-        function updateCards() {
-            elements.ownedCards.innerHTML = '';
-            
-            if (ownedCards.length === 0) {
-                elements.ownedCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек</div>';
-                return;
-            }
-            
-            ownedCards.forEach(card => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `owned-card ${card.rarity}`;
-                cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    <div style="font-size: 2em;">${card.emoji}</div>
-                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
-                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                    <div style="font-size: 0.7em; margin-top: 5px; color: #FFD700;">${card.shopChance || 0}% в магазине</div>
-                    <div style="font-size: 0.6em; opacity: 0.6;">Индекс: ${card.index}</div>
-                `;
-                elements.ownedCards.appendChild(cardElement);
+                container.appendChild(item);
             });
         }
 
-        // Обновление карточек для мини-игр
-        function updateGameCards() {
-            elements.gameCards.innerHTML = '';
+        // Рендер донат магазина
+        function renderDonateShop() {
+            const container = document.getElementById('donateItems');
+            container.innerHTML = '';
             
-            if (ownedCards.length === 0) {
-                elements.gameCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек для игры</div>';
-                elements.startRouletteBtn.disabled = true;
-                return;
-            }
-            
-            ownedCards.forEach((card, index) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `owned-card ${card.rarity} ${selectedCardForGame === index ? 'selected' : ''}`;
-                cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    <div style="font-size: 2em;">${card.emoji}</div>
-                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
-                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                    <div style="font-size: 0.7em; color: #FFD700;">50% шанс в рулетке</div>
-                `;
-                cardElement.onclick = () => selectCardForGame(index);
-                elements.gameCards.appendChild(cardElement);
-            });
-            
-            elements.startRouletteBtn.disabled = selectedCardForGame === null;
-        }
-
-        // Выбор карточки для игры
-        function selectCardForGame(index) {
-            selectedCardForGame = index;
-            updateGameCards();
-        }
-
-        // Обновление карточек для обмена
-        function updateExchangeCards() {
-            elements.exchangeCards.innerHTML = '';
-            
-            if (ownedCards.length === 0) {
-                elements.exchangeCards.innerHTML = '<div style="text-align: center; opacity: 0.7; grid-column: 1 / -1;">Нет карточек для обмена</div>';
-                elements.exchangeForm.style.display = 'none';
-                return;
-            }
-            
-            ownedCards.forEach((card, index) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = `owned-card ${card.rarity} ${selectedCardForExchange === index ? 'selected' : ''}`;
-                cardElement.innerHTML = `
-                    <div class="card-id">#${card.uniqueId.substring(2, 8)}</div>
-                    <div style="font-size: 2em;">${card.emoji}</div>
-                    <div style="font-size: 0.8em; margin: 5px 0;">${card.name}</div>
-                    <div style="font-size: 0.7em; opacity: 0.8;">+${card.mining}/сек</div>
-                    <div style="font-size: 0.7em; color: #FFD700;">${getRarityName(card.rarity)}</div>
-                `;
-                cardElement.onclick = () => selectCardForExchange(index);
-                elements.exchangeCards.appendChild(cardElement);
-            });
-        }
-
-        // Выбор карточки для обмена
-        function selectCardForExchange(index) {
-            selectedCardForExchange = index;
-            updateExchangeCards();
-            const card = ownedCards[index];
-            elements.selectedCardName.textContent = card.name;
-            elements.exchangeForm.style.display = 'block';
-        }
-
-        // Создание предложения обмена
-        function createExchangeOffer() {
-            if (selectedCardForExchange === null) return;
-            
-            const price = parseInt(elements.exchangePrice.value);
-            if (!price || price < 1) {
-                alert('Введите корректную цену!');
-                return;
-            }
-            
-            const card = ownedCards[selectedCardForExchange];
-            const offer = {
-                id: globalExchangeIdCounter++,
-                card: card,
-                price: price,
-                timestamp: Date.now()
-            };
-            
-            exchangeOffers.push(offer);
-            elements.exchangePrice.value = '';
-            elements.exchangeForm.style.display = 'none';
-            selectedCardForExchange = null;
-            updateExchangeCards();
-            updateExchangeOffers();
-            saveGame();
-            
-            alert(`Предложение создано! ${card.name} за ${price} 🐕`);
-        }
-
-        // Обновление списка предложений обмена
-        function updateExchangeOffers() {
-            elements.exchangeOffers.innerHTML = '';
-            
-            if (exchangeOffers.length === 0) {
-                elements.exchangeOffers.innerHTML = '<div style="text-align: center; opacity: 0.7;">Нет активных предложений</div>';
-                return;
-            }
-            
-            exchangeOffers.forEach((offer, index) => {
-                const offerElement = document.createElement('div');
-                offerElement.className = 'exchange-offer';
-                offerElement.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <div style="font-size: 1.5em;">${offer.card.emoji}</div>
-                            <div><strong>${offer.card.name}</strong></div>
-                            <div style="font-size: 0.8em; opacity: 0.8;">+${offer.card.mining}/сек • ${getRarityName(offer.card.rarity)}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.2em; color: #FFD700;">${offer.price} 🐕</div>
-                            <button class="exchange-btn" onclick="buyExchangeOffer(${index})">Купить</button>
-                        </div>
+            DONATE_SHOP.forEach(item => {
+                const canAffordPremium = gameState.premiumCoins >= item.price_premium;
+                const canAffordTokens = gameState.gameTokens >= item.price_tokens;
+                
+                const donateItem = document.createElement('div');
+                donateItem.className = 'donate-item';
+                donateItem.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>${item.name}</strong>
+                        <div style="font-size: 14px; opacity: 0.9;">${item.description}</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button style="flex: 1; padding: 8px; background: ${canAffordPremium ? '#28a745' : '#6c757d'}; color: white; border: none; border-radius: 8px;" 
+                                onclick="buyDonateItem('${item.id}', 'premium')" ${!canAffordPremium ? 'disabled' : ''}>
+                            💎 ${item.price_premium}
+                        </button>
+                        <button style="flex: 1; padding: 8px; background: ${canAffordTokens ? '#ffc107' : '#6c757d'}; color: #333; border: none; border-radius: 8px;" 
+                                onclick="buyDonateItem('${item.id}', 'tokens')" ${!canAffordTokens ? 'disabled' : ''}>
+                            🪙 ${item.price_tokens}
+                        </button>
                     </div>
                 `;
-                elements.exchangeOffers.appendChild(offerElement);
+                container.appendChild(donateItem);
             });
         }
 
-        // Покупка предложения обмена
-        function buyExchangeOffer(offerIndex) {
-            const offer = exchangeOffers[offerIndex];
+        // Рендер инвентаря
+        function renderInventory() {
+            const container = document.getElementById('inventoryItems');
+            container.innerHTML = '';
             
-            if (mopsCoins >= offer.price) {
-                mopsCoins -= offer.price;
-                
-                // Добавляем карточку в инвентарь
-                const newCard = {
-                    ...offer.card,
-                    uniqueId: generateUniqueCardId()
-                };
-                ownedCards.push(newCard);
-                
-                // Удаляем предложение
-                exchangeOffers.splice(offerIndex, 1);
-                
-                updateMiningRate();
-                updateDisplay();
-                updateCards();
-                updateIndex();
-                updateGameCards();
-                updateExchangeOffers();
-                saveGame();
-                
-                alert(`Вы купили ${newCard.name} за ${offer.price} 🐕!`);
-            } else {
-                alert('Недостаточно мопс-коинов!');
+            if (gameState.ownedCards.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">У вас пока нет мопсов 😢</p>';
+                return;
             }
+            
+            gameState.ownedCards.forEach(card => {
+                const item = document.createElement('div');
+                item.className = 'inventory-item';
+                item.innerHTML = `
+                    <div class="inventory-emoji">${card.emoji}</div>
+                    <div>
+                        <strong>${card.name}</strong>
+                        <div style="font-size: 12px; color: #666;">⛏️ +${card.mining}/сек | ${card.rarity}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        // Мини-игра: Рулетка с фиксированным 50% шансом
-        function startRoulette() {
-            if (selectedCardForGame === null || isRouletteSpinning) return;
+        // Показать уведомление
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
             
-            const selectedCard = ownedCards[selectedCardForGame];
-            isRouletteSpinning = true;
-            elements.startRouletteBtn.disabled = true;
-            elements.rouletteContainer.style.display = 'block';
-            elements.rouletteResult.innerHTML = '';
-            
-            // Запускаем анимацию вращения
-            elements.rouletteWheel.classList.add('roulette-spinning');
-            
-            // Останавливаем рулетку через 2 секунды
             setTimeout(() => {
-                elements.rouletteWheel.classList.remove('roulette-spinning');
-                isRouletteSpinning = false;
-                
-                // Фиксированный 50% шанс
-                const isWin = Math.random() < 0.5;
-                
-                if (isWin) {
-                    // Улучшение карточки при выигрыше
-                    const improvement = 1.2 + Math.random() * 0.3;
-                    selectedCard.mining *= improvement;
-                    selectedCard.index = Math.floor(selectedCard.index * improvement);
-                    
-                    elements.rouletteResult.innerHTML = '<div class="roulette-result win">🎉 ВЫИГРЫШ! 🐕</div>';
-                    setTimeout(() => {
-                        elements.rouletteResult.innerHTML += `
-                            <div style="color: #4CAF50; font-size: 1em;">
-                                ${selectedCard.name} улучшился!<br>
-                                Майнинг: +${((improvement - 1) * 100).toFixed(1)}%<br>
-                                Теперь: ${selectedCard.mining.toFixed(2)}/сек
-                            </div>
-                        `;
-                    }, 1000);
-                } else {
-                    // Потеря карточки при проигрыше
-                    ownedCards.splice(selectedCardForGame, 1);
-                    selectedCardForGame = null;
-                    
-                    elements.rouletteResult.innerHTML = '<div class="roulette-result lose">💔 ПРОИГРЫШ! ❌</div>';
-                    setTimeout(() => {
-                        elements.rouletteResult.innerHTML += `
-                            <div style="color: #f44336; font-size: 1em;">
-                                Вы потеряли ${selectedCard.name}
-                            </div>
-                        `;
-                    }, 1000);
-                }
-                
-                setTimeout(() => {
-                    updateMiningRate();
-                    updateDisplay();
-                    updateCards();
-                    updateGameCards();
-                    updateIndex();
-                    saveGame();
-                    elements.startRouletteBtn.disabled = selectedCardForGame === null;
-                }, 2000);
-                
+                notification.classList.remove('show');
             }, 2000);
         }
 
-        // Активация промокода
-        function activatePromoCode() {
-            const code = elements.promoCode.value.trim().toLowerCase();
-            
-            if (!code) {
-                elements.promoResult.innerHTML = '<div style="color: #f44336;">Введите промокод</div>';
-                return;
-            }
-            
-            if (!promoCodes[code]) {
-                elements.promoResult.innerHTML = '<div style="color: #f44336;">Неверный промокод</div>';
-                return;
-            }
-            
-            if (promoCodes[code].used) {
-                elements.promoResult.innerHTML = '<div style="color: #f44336;">Промокод уже использован</div>';
-                return;
-            }
-            
-            // Активируем промокод
-            mopsCoins += promoCodes[code].coins;
-            promoCodes[code].used = true;
-            usedPromoCodes.push(code);
-            
-            elements.promoResult.innerHTML = `
-                <div style="color: #4CAF50;">
-                    🎉 Промокод активирован!<br>
-                    Получено: ${promoCodes[code].coins} 🐕
-                </div>
-            `;
-            
-            elements.promoCode.value = '';
-            updateDisplay();
-            saveGame();
-        }
-
-        // Обновление реферальной информации
-        function updateReferralInfo() {
-            elements.refCode.textContent = referralCode;
-            elements.refCount.textContent = referredUsers.length;
-            
-            // Обновляем ссылку с правильным username бота
-            elements.refLink.innerHTML = `https://t.me/<strong>your_tapolka_bot</strong>?start=ref_${referralCode}`;
-        }
-
-        // Копирование реферальной ссылки
-        function copyRefLink() {
-            const link = `https://t.me/your_tapolka_bot?start=ref_${referralCode}`;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('Реферальная ссылка скопирована!');
+        // Обработчики вкладок
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Убираем активный класс у всех вкладок
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Скрываем все контенты
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                
+                // Активируем выбранную вкладку
+                tab.classList.add('active');
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(`${tabName}Content`).style.display = 'block';
             });
+        });
+
+        // Обработчик тапа
+        document.getElementById('tapArea').addEventListener('click', tapMops);
+
+        // Симуляция покупки премиум валюты (в реальном приложении через Telegram Payments)
+        function addPremiumCoins(amount) {
+            gameState.premiumCoins += amount;
+            gameState.gameTokens += amount * gameState.exchangeRate;
+            updateUI();
+            saveGameState();
+            showNotification(`✅ Получено ${amount}💎 + ${(amount * gameState.exchangeRate).toFixed(1)}🪙`);
         }
 
-        // Активация реферального бонуса
-        function activateReferralBonus() {
-            referralBonusActive = true;
-            referralBonusEndTime = Date.now() + 30 * 60 * 1000; // 30 минут
-            tapMultiplier = 1.5;
-            
-            // Добавляем реферального мопса
-            const refMops = {
-                ...cardTypes.find(c => c.id === 27),
-                uniqueId: generateUniqueCardId()
-            };
-            ownedCards.push(refMops);
-            
-            updateMiningRate();
-            updateDisplay();
-            updateCards();
-            updateGameCards();
-            updateIndex();
-            saveGame();
-        }
+        // Запуск игры при загрузке
+        document.addEventListener('DOMContentLoaded', initGame);
 
-        // Проверка реферального бонуса
-        function checkReferralBonus() {
-            if (referralBonusActive && Date.now() < referralBonusEndTime) {
-                const timeLeft = referralBonusEndTime - Date.now();
-                const minutes = Math.floor(timeLeft / 60000);
-                const seconds = Math.floor((timeLeft % 60000) / 1000);
-                elements.bonusTimer.style.display = 'block';
-                elements.bonusTimer.textContent = `🎁 x1.5 бонус: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            } else if (referralBonusActive) {
-                // Бонус закончился
-                referralBonusActive = false;
-                tapMultiplier = 1;
-                elements.bonusTimer.style.display = 'none';
-                saveGame();
-            }
-        }
-
-        // Обновление индекса
-        function updateIndex() {
-            const totalIndex = ownedCards.reduce((sum, card) => sum + card.index, 0);
-            const hourlyIncome = miningRate * 3600;
-            const totalCards = ownedCards.length;
-            
-            const rarityWeights = {common: 1, rare: 3, epic: 8, legendary: 20, mythic: 50, unique: 100};
-            const rarityScore = ownedCards.reduce((score, card) => score + rarityWeights[card.rarity], 0);
-            
-            elements.totalIndex.textContent = totalIndex.toLocaleString();
-            elements.hourlyIncome.textContent = Math.floor(hourlyIncome).toLocaleString();
-            elements.totalCards.textContent = totalCards;
-            elements.rarityScore.textContent = rarityScore;
-        }
-
-        // Вспомогательные функции
-        function getRarityColor(rarity) {
-            const colors = {
-                'common': '#666',
-                'rare': '#4CAF50', 
-                'epic': '#9C27B0',
-                'legendary': '#FF9800',
-                'mythic': '#FF0000',
-                'unique': '#FF00FF'
-            };
-            return colors[rarity] || '#666';
-        }
-
-        function getRarityName(rarity) {
-            const names = {
-                'common': 'Обычная',
-                'rare': 'Редкая',
-                'epic': 'Эпическая', 
-                'legendary': 'Легендарная',
-                'mythic': 'Мифическая',
-                'unique': 'Уникальная'
-            };
-            return names[rarity] || 'Обычная';
-        }
-
-        // Обновление отображения
-        function updateDisplay() {
-            elements.mopsCoins.textContent = Math.floor(mopsCoins).toLocaleString();
-            elements.totalTaps.textContent = totalTaps.toLocaleString();
-            
-            let level = 'Новичок';
-            let nextLevel = 100;
-            
-            if (mopsCoins < 100) {
-                level = '🥉 Новичок';
-                nextLevel = 100;
-            } else if (mopsCoins < 500) {
-                level = '🥈 Любитель';
-                nextLevel = 500;
-            } else if (mopsCoins < 2000) {
-                level = '🥇 Профи';
-                nextLevel = 2000;
-            } else if (mopsCoins < 10000) {
-                level = '💎 Мастер';
-                nextLevel = 10000;
-            } else if (mopsCoins < 50000) {
-                level = '👑 Король мопсов';
-                nextLevel = 50000;
-            } else {
-                level = '🌟 БОГ МОПСОВ';
-                nextLevel = 'MAX';
-            }
-            
-            elements.level.textContent = level;
-            elements.nextLevel.textContent = nextLevel.toLocaleString();
-        }
-
-        // Инициализация Telegram
-        function initTelegram() {
-            try {
-                Telegram.WebApp.ready();
-                Telegram.WebApp.expand();
-                Telegram.WebApp.setHeaderColor('#8B4513');
-                Telegram.WebApp.setBackgroundColor('#D2691E');
-            } catch (e) {
-                console.log('Telegram Web App не доступен');
-            }
-        }
-
-        // Игровой цикл
-        function gameLoop() {
-            processMining();
-            updateShop();
-            checkReferralBonus();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Запуск игры
-        function initGame() {
-            loadGame();
-            initTelegram();
-            gameLoop();
-            
-            document.addEventListener('keydown', function(event) {
-                if (event.code === 'Space') {
-                    event.preventDefault();
-                    tapMops();
-                }
-            });
-            
-            switchTab('tap');
-        }
-
-        // Запускаем игру
-        window.onload = initGame;
+        // Для тестирования - добавим кнопки покупки премиум валюты
+        setTimeout(() => {
+            const donateTab = document.querySelector('[data-tab="donate"]');
+            donateTab.innerHTML += ' <span class="premium-badge" onclick="addPremiumCoins(100)" style="cursor: pointer;">+100💎</span>';
+        }, 1000);
     </script>
 </body>
 </html>
